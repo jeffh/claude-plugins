@@ -42,9 +42,9 @@ After adding the marketplace, install the plugin:
 
 ### humanlayer
 
-**Category:** Development
-**Version:** 2025-10-09
-**Author:** HumanLayer
+- **Category:** Development
+- **Version:** 2025-10-09
+- **Author:** HumanLayer
 
 Commands and agents from HumanLayer, optimized for Claude Code workflows but with app-specific stuff removed. This plugin provides a complete development workflow system with specialized slash commands and research agents. See [original repository](https://github.com/humanlayer/humanlayer) for more details.
 
