@@ -1,6 +1,6 @@
 {
     "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-    "name": "jeffh-claude-plugins",
+    "name": "jeffh/claude-plugins",
     "version": "1.0.0",
     "description": "Various Plugins for Claude Code",
     "owner": {
@@ -9,9 +9,9 @@
     },
     "plugins": [
         {
-            "name": "human-layer",
-            "description": "Commands and agents from humanlayer, but without the thought syncs",
-            "source": "./human-layer",
+            "name": "humanlayer",
+            "description": "Commands and agents from humanlayer, but without the thought syncing",
+            "source": "./humanlayer",
             "category": "development",
             "version": "2025-10-09",
             "author": {
