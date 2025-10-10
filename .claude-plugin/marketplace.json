@@ -11,7 +11,7 @@
         {
             "name": "human-layer",
             "description": "Commands and agents from humanlayer, but without the thought syncs",
-            "source": "human-layer",
+            "source": "./human-layer",
             "category": "development",
             "version": "2025-10-09",
             "author": {
