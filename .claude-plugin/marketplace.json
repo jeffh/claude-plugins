@@ -1,0 +1,22 @@
+{
+    "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+    "name": "jeffh-claude-plugins",
+    "version": "1.0.0",
+    "description": "Various Plugins for Claude Code",
+    "owner": {
+        "name": "Jeff Hui",
+        "email": "jeff@jeffhui.net"
+    },
+    "plugins": [
+        {
+            "name": "human-layer",
+            "description": "Commands and agents from humanlayer, but without the thought syncs",
+            "source": "human-layer",
+            "category": "development",
+            "version": "2025-10-09",
+            "author": {
+                "name": "HumanLayer"
+            }
+        }
+    ]
+}
