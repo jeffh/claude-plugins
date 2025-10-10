@@ -1,6 +1,6 @@
 {
     "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-    "name": "jeffh/claude-plugins",
+    "name": "jeffh-claude-plugins",
     "version": "1.0.0",
     "description": "Various Plugins for Claude Code",
     "owner": {
