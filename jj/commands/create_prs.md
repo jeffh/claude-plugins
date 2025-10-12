@@ -31,8 +31,8 @@ You are tasked with creating pull requests for all changes in the current jj tre
        - If user chose "main branch": use main (or master)
        - If user chose "parent branch": use the direct parent commit's branch
      - Create the PR:
-       - If user chose "drafts": Run `gh pr create --draft --base <base-branch> --head <branch-name> --title "<title>" --body "<body>"`
-       - If user chose "published": Run `gh pr create --base <base-branch> --head <branch-name> --title "<title>" --body "<body>"`
+       - If user chose "drafts": Run `gh pr create --draft -H <bookmark-name> --base <base-branch> --head <branch-name> --title "<title>" --body "<body>"`
+       - If user chose "published": Run `gh pr create -H <bookmark-name> --base <base-branch> --head <branch-name> --title "<title>" --body "<body>"`
      - Store the PR URL and branch name for later use
 
 5. **Build the stack information:**
