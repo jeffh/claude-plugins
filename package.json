@@ -1,0 +1,19 @@
+{
+  "name": "claude-plugins",
+  "version": "1.0.0",
+  "description": "Claude Code plugins marketplace",
+  "private": true,
+  "scripts": {
+    "validate": "node scripts/validate-plugins.js",
+    "test": "node scripts/validate-plugins.js"
+  },
+  "devDependencies": {
+    "ajv": "^8.12.0",
+    "ajv-formats": "^3.0.1",
+    "glob": "^10.3.10",
+    "yaml-front-matter": "^4.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
