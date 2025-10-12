@@ -1,0 +1,39 @@
+name: Validate Claude Plugins
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate Plugins and Marketplace
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run validation
+        run: npm run validate
+
+      - name: Validation summary
+        if: always()
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✅ All plugin validations passed!"
+          else
+            echo "❌ Plugin validation failed. See errors above."
+            exit 1
+          fi
