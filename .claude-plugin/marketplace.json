@@ -17,6 +17,17 @@
             "author": {
                 "name": "HumanLayer"
             }
+        },
+        {
+            "name": "jj",
+            "description": "Jujutsu (jj) version control commands",
+            "source": "./jj",
+            "category": "development",
+            "version": "2025-10-12",
+            "author": {
+                "name": "Jeff Hui",
+                "email": "jeff@jeffhui.net"
+            }
         }
     ]
 }
