@@ -4,7 +4,10 @@ A collection of powerful plugins for [Claude Code](https://claude.ai/code) that 
 
 ## Overview
 
-This repository provides a plugin marketplace for Claude Code. Currently it contains the **humanlayer** plugin with 6 slash commands and 6 specialized agents designed to help you research codebases, create detailed implementation plans, and execute development workflows more efficiently.
+This repository provides a plugin marketplace for Claude Code with multiple plugins to enhance your development workflow:
+
+- **humanlayer**: 6 core slash commands (with variants) and 6 specialized agents for codebase research, planning, and implementation workflows
+- **jj**: 3 slash commands for Jujutsu (jj) version control workflows
 
 ## Installation
 
@@ -42,13 +45,23 @@ After adding the marketplace, install the plugin:
 
 ### humanlayer
 
-Commands and agents from HumanLayer, optimized for Claude Code workflows. Provides 6 slash commands for complete development workflows and 6 specialized research agents.
+Commands and agents from HumanLayer, optimized for Claude Code workflows. Provides 6 core slash commands (with additional variants) for complete development workflows and 6 specialized research agents.
 
 **[Full Documentation →](docs/humanlayer.md)**
 
 **Quick Overview:**
-- **Commands:** `/commit`, `/create_plan`, `/implement_plan`, `/validate_plan`, `/describe_pr`, `/research_codebase`
+- **Core Commands:** `/commit`, `/create_plan`, `/implement_plan`, `/validate_plan`, `/describe_pr`, `/research_codebase`
 - **Agents:** `codebase-analyzer`, `codebase-locator`, `codebase-pattern-finder`, `thoughts-analyzer`, `thoughts-locator`, `web-search-researcher`
+
+### jj
+
+Jujutsu (jj) version control commands for streamlined workflows. Provides 3 slash commands specifically designed for developers using Jujutsu VCS.
+
+**[Full Documentation →](docs/jj.md)**
+
+**Quick Overview:**
+- **Commands:** `/commit`, `/rebase`, `/create_prs`
+- **Features:** Atomic commits, automatic rebasing, stack-aware PR creation with visualization
 
 ## Workflow Examples
 

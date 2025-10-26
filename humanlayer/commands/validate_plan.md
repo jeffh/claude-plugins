@@ -1,3 +1,7 @@
+---
+description: Validate implementation against plan, verify success criteria, identify issues
+---
+
 # Validate Plan
 
 You are tasked with validating that an implementation plan was correctly executed, verifying all success criteria and identifying any deviations or issues.
@@ -14,14 +18,24 @@ When invoked:
    - Otherwise, search recent commits for plan references or ask user
 
 3. **Gather implementation evidence**:
-   ```bash
-   # Check recent commits
-   git log --oneline -n 20
-   git diff HEAD~N..HEAD  # Where N covers implementation commits
+   - For git users:
+     ```bash
+     # Check recent commits
+     git log --oneline -n 20
+     git diff HEAD~N..HEAD  # Where N covers implementation commits
 
-   # Run comprehensive checks
-   cd $(git rev-parse --show-toplevel) && make check test
-   ```
+     # Run comprehensive checks
+     cd $(git rev-parse --show-toplevel) && make check test
+     ```
+   - For jj users:
+     ```bash
+     # Check recent changes
+     jj log -n 20
+     jj diff -r 'ancestors(@, N)'  # Where N covers implementation commits
+
+     # Run comprehensive checks
+     cd $(jj root) && make check test
+     ```
 
 ## Validation Process
 
@@ -153,10 +167,10 @@ Always verify:
 
 Recommended workflow:
 1. `/implement_plan` - Execute the implementation
-2. `/commit` - Create atomic commits for changes
+2. `/commit` - Create atomic commits/changes for the work
 3. `/validate_plan` - Verify implementation correctness
 4. `/describe_pr` - Generate PR description
 
-The validation works best after commits are made, as it can analyze the git history to understand what was implemented.
+The validation works best after commits/changes are made, as it can analyze the version control history to understand what was implemented.
 
 Remember: Good validation catches issues before they reach production. Be constructive but thorough in identifying gaps or improvements.
