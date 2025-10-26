@@ -70,7 +70,7 @@ You are tasked with creating pull requests for all changes in the current jj tre
 ## Jujutsu and GitHub CLI notes:
 
 - `jj git push --allow-new` will push all branches and output which ones are new
-- Use `jj log -r 'branches()'` to see all branches
+- Use `jj log -r 'bookmarks()'` to see all bookmarks
 - Use `jj diff -r <revision>` to see changes for a specific commit
 - Use `gh pr create` to create PRs programmatically
 - Use `gh pr edit` to update PR descriptions after creation
