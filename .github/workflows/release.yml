@@ -186,7 +186,7 @@ jobs:
           echo "Release notes generated"
           cat release_notes.md
 
-      - name: Update package.json version
+      - name: Update package.json and marketplace.json versions
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
           VERSION_NO_V="${NEW_VERSION#v}"
@@ -201,12 +201,22 @@ jobs:
 
           echo "Updated package.json to version $VERSION_NO_V"
 
+          # Update marketplace.json version
+          node -e "
+            const fs = require('fs');
+            const marketplace = JSON.parse(fs.readFileSync('.claude-plugin/marketplace.json', 'utf8'));
+            marketplace.version = '$VERSION_NO_V';
+            fs.writeFileSync('.claude-plugin/marketplace.json', JSON.stringify(marketplace, null, 4) + '\n');
+          "
+
+          echo "Updated marketplace.json to version $VERSION_NO_V"
+
       - name: Commit version bump
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add package.json
+          git add package.json .claude-plugin/marketplace.json
           git commit -m "chore: bump version to $NEW_VERSION"
           git push
 

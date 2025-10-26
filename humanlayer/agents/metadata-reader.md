@@ -1,5 +1,5 @@
 ---
-name: codebase-locator
+name: metadata-locator
 description: Describe the current repository's metadata including git info if available. Use this to understand the context of the codebase you're working with.
 tools: Grep, Glob, LS
 model: sonnet
