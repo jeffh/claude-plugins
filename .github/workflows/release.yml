@@ -2,20 +2,6 @@ name: Create Release
 
 on:
   workflow_dispatch:
-    inputs:
-      version_bump:
-        description: 'Version bump type'
-        required: true
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-        default: 'patch'
-      custom_version:
-        description: 'Custom version (optional, overrides bump type, e.g., 1.2.3)'
-        required: false
-        type: string
 
 permissions:
   contents: write
@@ -45,201 +31,18 @@ jobs:
       - name: Run validation
         run: npm run validate
 
-      - name: Get latest release tag
-        id: get_latest_tag
+      - name: Create release
+        id: semrel
+        uses: go-semantic-release/action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          update-file: package.json,.claude-plugin/marketplace.json
+
+      - name: Commit version updates
+        if: steps.semrel.outputs.version != ''
         run: |
-          # Get the latest release tag (non-prerelease)
-          LATEST_TAG=$(git tag -l "v*" | grep -v "beta\|alpha\|rc" | sort -V | tail -n1)
-          if [ -z "$LATEST_TAG" ]; then
-            LATEST_TAG="v0.0.0"
-          fi
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "Latest release tag: $LATEST_TAG"
-
-      - name: Calculate new version
-        id: new_version
-        run: |
-          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
-          CUSTOM_VERSION="${{ github.event.inputs.custom_version }}"
-          BUMP_TYPE="${{ github.event.inputs.version_bump }}"
-
-          if [ -n "$CUSTOM_VERSION" ]; then
-            # Use custom version if provided
-            NEW_VERSION="v${CUSTOM_VERSION#v}"
-          else
-            # Remove 'v' prefix if present
-            VERSION="${LATEST_TAG#v}"
-
-            # Split version into major.minor.patch
-            IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-
-            # Remove any prerelease suffix from patch (e.g., 1-beta.1 -> 1)
-            PATCH="${PATCH%%-*}"
-
-            # Calculate new version based on bump type
-            if [ "$BUMP_TYPE" = "major" ]; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-            elif [ "$BUMP_TYPE" = "minor" ]; then
-              MINOR=$((MINOR + 1))
-              PATCH=0
-            else
-              PATCH=$((PATCH + 1))
-            fi
-
-            NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
-          fi
-
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "New version: $NEW_VERSION"
-
-      - name: Verify version doesn't exist
-        run: |
-          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
-          if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
-            echo "Error: Tag $NEW_VERSION already exists!"
-            exit 1
-          fi
-
-      - name: Generate release notes
-        id: release_notes
-        run: |
-          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
-          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
-
-          # Get commits since last release tag
-          if [ "$LATEST_TAG" = "v0.0.0" ]; then
-            COMMITS=$(git log --pretty=format:"%s (%h)" --reverse)
-          else
-            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s (%h)" --reverse)
-          fi
-
-          # Categorize commits by type
-          FEATURES=""
-          FIXES=""
-          BREAKING=""
-          OTHER=""
-
-          while IFS= read -r commit; do
-            if echo "$commit" | grep -qiE "^(feat|feature)(\(.+\))?!:"; then
-              BREAKING="${BREAKING}- ${commit}\n"
-            elif echo "$commit" | grep -qiE "^(feat|feature)(\(.+\))?:"; then
-              FEATURES="${FEATURES}- ${commit}\n"
-            elif echo "$commit" | grep -qiE "^fix(\(.+\))?:"; then
-              FIXES="${FIXES}- ${commit}\n"
-            else
-              OTHER="${OTHER}- ${commit}\n"
-            fi
-          done <<< "$COMMITS"
-
-          # Create release notes
-          cat > release_notes.md <<EOF
-          ## 🎉 Release $NEW_VERSION
-
-          This is a stable release created manually.
-
-          EOF
-
-          if [ -n "$BREAKING" ]; then
-            cat >> release_notes.md <<EOF
-          ### ⚠️ Breaking Changes
-
-          $(echo -e "$BREAKING")
-
-          EOF
-          fi
-
-          if [ -n "$FEATURES" ]; then
-            cat >> release_notes.md <<EOF
-          ### ✨ Features
-
-          $(echo -e "$FEATURES")
-
-          EOF
-          fi
-
-          if [ -n "$FIXES" ]; then
-            cat >> release_notes.md <<EOF
-          ### 🐛 Bug Fixes
-
-          $(echo -e "$FIXES")
-
-          EOF
-          fi
-
-          if [ -n "$OTHER" ]; then
-            cat >> release_notes.md <<EOF
-          ### 📝 Other Changes
-
-          $(echo -e "$OTHER")
-
-          EOF
-          fi
-
-          cat >> release_notes.md <<EOF
-          ---
-
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${LATEST_TAG}...${NEW_VERSION}
-          EOF
-
-          echo "Release notes generated"
-          cat release_notes.md
-
-      - name: Update package.json and marketplace.json versions
-        run: |
-          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
-          VERSION_NO_V="${NEW_VERSION#v}"
-
-          # Update package.json version
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.version = '$VERSION_NO_V';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-          "
-
-          echo "Updated package.json to version $VERSION_NO_V"
-
-          # Update marketplace.json version
-          node -e "
-            const fs = require('fs');
-            const marketplace = JSON.parse(fs.readFileSync('.claude-plugin/marketplace.json', 'utf8'));
-            marketplace.version = '$VERSION_NO_V';
-            fs.writeFileSync('.claude-plugin/marketplace.json', JSON.stringify(marketplace, null, 4) + '\n');
-          "
-
-          echo "Updated marketplace.json to version $VERSION_NO_V"
-
-      - name: Commit version bump
-        run: |
-          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add package.json .claude-plugin/marketplace.json
-          git commit -m "chore: bump version to $NEW_VERSION"
-          git push
-
-      - name: Create Git Tag
-        run: |
-          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
-          git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
-          git push origin "$NEW_VERSION"
-
-      - name: Create GitHub Release
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const fs = require('fs');
-            const releaseNotes = fs.readFileSync('release_notes.md', 'utf8');
-
-            await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: '${{ steps.new_version.outputs.new_version }}',
-              name: '${{ steps.new_version.outputs.new_version }}',
-              body: releaseNotes,
-              draft: false,
-              prerelease: false,
-              make_latest: true
-            });
+          git commit -m "chore: bump version to ${{ steps.semrel.outputs.version }}" || echo "No changes to commit"
+          git push || echo "No changes to push"

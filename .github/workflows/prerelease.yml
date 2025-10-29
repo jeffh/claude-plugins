@@ -24,155 +24,19 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Create prerelease
+        id: semrel
+        uses: go-semantic-release/action@v1
         with:
-          node-version: '20'
-
-      - name: Get latest tag
-        id: get_latest_tag
-        run: |
-          # Get the latest tag, default to v0.0.0 if no tags exist
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "Latest tag: $LATEST_TAG"
-
-      - name: Determine version bump
-        id: version_bump
-        run: |
-          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
-
-          # Remove 'v' prefix if present
-          VERSION="${LATEST_TAG#v}"
-
-          # Split version into major.minor.patch
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-
-          # Remove any prerelease suffix from patch (e.g., 1-beta.1 -> 1)
-          PATCH="${PATCH%%-*}"
-
-          # Get commit messages since last tag
-          if [ "$LATEST_TAG" = "v0.0.0" ]; then
-            COMMITS=$(git log --pretty=format:"%s")
-          else
-            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s")
-          fi
-
-          # Determine bump type based on conventional commits
-          BUMP_TYPE="patch"
-
-          if echo "$COMMITS" | grep -qiE "^(feat|feature)(\(.+\))?!:|^[a-z]+(\(.+\))?!:|BREAKING CHANGE:"; then
-            BUMP_TYPE="major"
-          elif echo "$COMMITS" | grep -qiE "^(feat|feature)(\(.+\))?:"; then
-            BUMP_TYPE="minor"
-          fi
-
-          # Calculate new version
-          if [ "$BUMP_TYPE" = "major" ]; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif [ "$BUMP_TYPE" = "minor" ]; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            PATCH=$((PATCH + 1))
-          fi
-
-          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
-
-          # Add prerelease suffix with commit count and short SHA
-          COMMIT_COUNT=$(git rev-list --count HEAD)
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          PRERELEASE_VERSION="${NEW_VERSION}-beta.${COMMIT_COUNT}+${SHORT_SHA}"
-
-          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
-          echo "new_version=$PRERELEASE_VERSION" >> $GITHUB_OUTPUT
-          echo "base_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-
-          echo "Bump type: $BUMP_TYPE"
-          echo "New prerelease version: $PRERELEASE_VERSION"
-
-      - name: Generate release notes
-        id: release_notes
-        run: |
-          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
-          NEW_VERSION="${{ steps.version_bump.outputs.new_version }}"
-
-          # Get commits since last tag
-          if [ "$LATEST_TAG" = "v0.0.0" ]; then
-            COMMITS=$(git log --pretty=format:"- %s (%h)" --reverse)
-          else
-            COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)" --reverse)
-          fi
-
-          # Create release notes
-          cat > release_notes.md <<EOF
-          ## 🚀 Prerelease $NEW_VERSION
-
-          This is an automated prerelease based on semantic versioning from commit messages.
-
-          ### Changes
-
-          $COMMITS
-
-          ### Installation
-
-          This is a prerelease version. Use with caution in production environments.
-
-          ---
-
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${LATEST_TAG}...${NEW_VERSION}
-          EOF
-
-          echo "Release notes generated"
-          cat release_notes.md
-
-      - name: Update marketplace.json version
-        run: |
-          NEW_VERSION="${{ steps.version_bump.outputs.new_version }}"
-          VERSION_NO_V="${NEW_VERSION#v}"
-          # Remove prerelease suffix for marketplace.json (e.g., 1.2.3-beta.4+abc123 -> 1.2.3)
-          CLEAN_VERSION="${VERSION_NO_V%%-*}"
-
-          # Update marketplace.json version
-          node -e "
-            const fs = require('fs');
-            const marketplace = JSON.parse(fs.readFileSync('.claude-plugin/marketplace.json', 'utf8'));
-            marketplace.version = '$CLEAN_VERSION';
-            fs.writeFileSync('.claude-plugin/marketplace.json', JSON.stringify(marketplace, null, 4) + '\n');
-          "
-
-          echo "Updated marketplace.json to version $CLEAN_VERSION"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: true
+          update-file: .claude-plugin/marketplace.json
 
       - name: Commit version updates
+        if: steps.semrel.outputs.version != ''
         run: |
-          NEW_VERSION="${{ steps.version_bump.outputs.new_version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .claude-plugin/marketplace.json
-          git commit -m "chore: bump version to $NEW_VERSION" || echo "No changes to commit"
+          git commit -m "chore: bump version to ${{ steps.semrel.outputs.version }}" || echo "No changes to commit"
           git push || echo "No changes to push"
-
-      - name: Create Git Tag
-        run: |
-          NEW_VERSION="${{ steps.version_bump.outputs.new_version }}"
-          git tag -a "$NEW_VERSION" -m "Prerelease $NEW_VERSION"
-          git push origin "$NEW_VERSION"
-
-      - name: Create GitHub Prerelease
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const fs = require('fs');
-            const releaseNotes = fs.readFileSync('release_notes.md', 'utf8');
-
-            await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: '${{ steps.version_bump.outputs.new_version }}',
-              name: '${{ steps.version_bump.outputs.new_version }}',
-              body: releaseNotes,
-              draft: false,
-              prerelease: true
-            });
