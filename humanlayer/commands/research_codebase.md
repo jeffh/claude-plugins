@@ -83,15 +83,7 @@ Then wait for the user's research query.
    - Answer the user's specific questions with concrete evidence
 
 5. **Gather metadata for the research document:**
-   - Gather metadata using version control commands:
-     - For git users:
-       - Current commit: `git rev-parse HEAD`
-       - Current branch: `git branch --show-current`
-       - Repository name: `basename $(git rev-parse --show-toplevel)`
-     - For jj users:
-       - Current commit: `jj log -r @ --no-graph -T 'commit_id'`
-       - Current bookmark: `jj bookmark list | grep '\*' | awk '{print $1}'`
-       - Repository name: `basename $(jj root)`
+   - Use the Task tool to invoke the `metadata-gatherer` agent to generate all relevant metadata
    - Filename: `thoughts/shared/research/YYYY-MM-DD-ENG-XXXX-description.md`
      - Format: `YYYY-MM-DD-ENG-XXXX-description.md` where:
        - YYYY-MM-DD is today's date
@@ -163,9 +155,7 @@ Then wait for the user's research query.
      ```
 
 7. **Add GitHub permalinks (if applicable):**
-   - Check if on main branch or if commit is pushed:
-     - For git users: `git branch --show-current` and `git status`
-     - For jj users: `jj bookmark list` and `jj status`
+   - Check if on main branch or if commit is pushed: `git branch --show-current` and `git status`
    - If on main/master or pushed, generate GitHub permalinks:
      - Get repo info: `gh repo view --json owner,name`
      - Create permalinks: `https://github.com/{owner}/{repo}/blob/{commit}/{file}#L{line}`
