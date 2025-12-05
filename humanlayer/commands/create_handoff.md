@@ -16,15 +16,10 @@ Use the following information to understand how to create your document:
         - ENG-XXXX is the ticket number (replace with `general` if no ticket)
         - ENG-ZZZZ is the ticket number (omit if no ticket)
         - description is a brief kebab-case description
-    - Gather metadata using version control commands:
-        - For git users:
-            - Current commit: `git rev-parse HEAD`
-            - Current branch: `git branch --show-current`
-            - Repository name: `basename $(git rev-parse --show-toplevel)`
-        - For jj users:
-            - Current commit: `jj log -r @ --no-graph -T 'commit_id'`
-            - Current bookmark: `jj bookmark list | grep '\*' | awk '{print $1}'`
-            - Repository name: `basename $(jj root)`
+    - Use the Task tool to invoke the `metadata-gatherer` agent to generate all relevant metadata:
+        ```
+        Task tool with subagent_type: metadata-gatherer
+        ```
     - Examples:
         - With ticket: `2025-01-08_13-55-22_ENG-2166_create-context-compaction.md`
         - Without ticket: `2025-01-08_13-55-22_create-context-compaction.md`
@@ -73,7 +68,7 @@ type: implementation_strategy
 ```
 ---
 
-### 3. Confirm Completion
+### 3. Final Response
 
 Once the handoff document is created, you should respond to the user with the template between <template_response></template_response> XML tags. do NOT include the tags in your response.
 

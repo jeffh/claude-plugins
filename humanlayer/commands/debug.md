@@ -100,14 +100,14 @@ Return: Relevant database findings
 ```
 
 ```
-Task 3 - Version Control and File State:
+Task 3 - Git and File State:
 Understand what changed recently:
-1. Check status and current branch/bookmark (git status or jj status)
-2. Look at recent commits/changes (git log --oneline -10 or jj log -n 10)
-3. Check uncommitted changes (git diff or jj diff)
+1. Check git status and current branch
+2. Look at recent commits: git log --oneline -10
+3. Check uncommitted changes: git diff
 4. Verify expected files exist
 5. Look for any file permission issues
-Return: Version control state and any file issues
+Return: Git state and any file issues
 ```
 
 ### Step 3: Present Findings
@@ -132,7 +132,7 @@ Based on the investigation, present a focused debug report:
 [Finding from database]
 ```
 
-**From Version Control/Files**:
+**From Git/Files**:
 - [Recent changes that might be related]
 - [File state issues]
 
@@ -190,18 +190,11 @@ ps aux | grep hld     # Is daemon running?
 ps aux | grep wui     # Is WUI running?
 ```
 
-**Version Control State**:
-- For git users:
-  ```bash
-  git status
-  git log --oneline -10
-  git diff
-  ```
-- For jj users:
-  ```bash
-  jj status
-  jj log -n 10
-  jj diff
-  ```
+**Git State**:
+```bash
+git status
+git log --oneline -10
+git diff
+```
 
-Remember: This command helps you investigate without burning the primary window's context. Perfect for when you hit an issue during manual testing and need to dig into logs, database, or version control state.
+Remember: This command helps you investigate without burning the primary window's context. Perfect for when you hit an issue during manual testing and need to dig into logs, database, or git state.
