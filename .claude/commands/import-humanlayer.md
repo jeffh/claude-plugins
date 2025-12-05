@@ -38,18 +38,45 @@ For each copied file (both commands and agents):
 3. If a file is modified, write the updated content back
 4. Report which files were modified and what was removed
 
-### Step 4: Convert Script References to Agents
+### Step 4: Convert Script References to Skills
 
 For each copied file (both commands and agents):
 
 1. Search for references to scripts in `scripts/*` directory
 2. For each script reference found:
    - Read the script content from the source repository
-   - Create a new agent file in `humanlayer/agents/` with a descriptive name based on the script's purpose
-   - Convert the script's functionality into agent instructions
-   - If the script uses git-specific commands, create dual instructions that include both git and jj (Jujutsu) equivalents
-   - Replace the script reference in the original file with instructions to use the new agent
-3. Report which agents were created and which script references were replaced
+   - Create a new skill directory in `humanlayer/skills/` with a descriptive name based on the script's purpose
+   - Create a `SKILL.md` file inside the skill directory with proper frontmatter:
+     ```yaml
+     ---
+     name: script-name
+     description: What this skill does and when Claude should activate it
+     allowed-tools: Bash, Read
+     ---
+     ```
+   - Convert the script's functionality into skill instructions within `SKILL.md`
+   - If the script uses git-specific commands, include both git and jj (Jujutsu) equivalents in the skill instructions:
+     ```
+     For git users:
+     - <git command>
+
+     For jj users:
+     - <jj equivalent>
+     ```
+   - Replace the script reference in the original file with instructions to use the Skill tool
+3. Report which skills were created and which script references were replaced
+
+**Skill directory structure:**
+```
+humanlayer/skills/
+  skill-name/
+    SKILL.md
+```
+
+**Skill frontmatter requirements:**
+- `name`: lowercase, numbers, hyphens only (max 64 chars)
+- `description`: explains both what the skill does AND when it should be activated (max 1024 chars)
+- `allowed-tools` (optional): comma-separated list of tools the skill can use
 
 ### Step 5: Git/JJ Dual Support
 
@@ -77,8 +104,9 @@ For any agents that involve version control operations:
 
 1. Verify that all copied files are valid markdown
 2. Verify that all agent files have proper frontmatter with `name`, `description`, `tools`, and `model` fields
-3. Check that no references to `thoughts sync` remain in any files
-4. Report any validation issues found
+3. Verify that all skill directories contain a valid `SKILL.md` with `name`, `description`, and optionally `allowed-tools` fields
+4. Check that no references to `thoughts sync` remain in any files
+5. Report any validation issues found
 
 ### Step 7: Summary Report
 
@@ -86,8 +114,8 @@ Provide a comprehensive summary including:
 - Number of commands copied
 - Number of agents copied
 - Number of files modified to remove syncing
-- Number of new agents created from scripts
-- List of all script-to-agent conversions
+- Number of new skills created from scripts
+- List of all script-to-skill conversions
 - Any validation warnings or errors
 
 ## Example Usage
@@ -98,7 +126,7 @@ Provide a comprehensive summary including:
 
 ## Notes
 
-- This is a destructive operation that will overwrite existing files in `humanlayer/commands/` and `humanlayer/agents/`
+- This is a destructive operation that will overwrite existing files in `humanlayer/commands/`, `humanlayer/agents/`, and `humanlayer/skills/`
 - Always backup or commit existing work before running this command
 - The command should be thorough and report all changes made
-- When in doubt about how to convert a script to an agent, create an agent that provides clear instructions for the task tool to follow
+- When in doubt about how to convert a script to a skill, create a skill that provides clear documentation in SKILL.md for Claude to follow
