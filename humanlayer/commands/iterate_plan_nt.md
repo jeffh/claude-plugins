@@ -73,13 +73,7 @@ If the user's feedback requires understanding new code patterns or validating as
    - **codebase-analyzer** - To understand implementation details
    - **codebase-pattern-finder** - To find similar patterns
 
-   **For historical context:**
-   - **thoughts-locator** - To find related research or decisions
-   - **thoughts-analyzer** - To extract insights from documents
-
    **Be EXTREMELY specific about directories**:
-   - If the change involves "WUI", specify `humanlayer-wui/` directory
-   - If it involves "daemon", specify `hld/` directory
    - Include full path context in prompts
 
 3. **Read any new files identified by research**:
@@ -130,9 +124,9 @@ Get user confirmation before proceeding.
    - Use `make` commands for automated verification
    - Keep language clear and actionable
 
-### Step 5: Review
+### Step 5: Sync and Review
 
-1. **Present the changes made**:
+**Present the changes made**:
    ```
    I've updated the plan at `thoughts/shared/plans/[filename].md`
 
@@ -147,7 +141,7 @@ Get user confirmation before proceeding.
    Would you like any further adjustments?
    ```
 
-2. **Be ready to iterate further** based on feedback
+**Be ready to iterate further** based on feedback
 
 ## Important Guidelines
 
@@ -192,7 +186,6 @@ When updating success criteria, always maintain the two-category structure:
 
 1. **Automated Verification** (can be run by execution agents):
    - Commands that can be run: `make test`, `npm run lint`, etc.
-   - Prefer `make` commands: `make -C humanlayer-wui check` instead of `cd humanlayer-wui && bun run fmt`
    - Specific files that should exist
    - Code compilation/type checking
 
@@ -240,6 +233,6 @@ User: /iterate_plan
 Assistant: Which plan would you like to update? Please provide the path...
 User: thoughts/shared/plans/2025-10-16-feature.md
 Assistant: I've found the plan. What changes would you like to make?
-User: Add more specific success criteria
+User: Add more specific success criteria to phase 4
 Assistant: [Proceeds with update]
 ```

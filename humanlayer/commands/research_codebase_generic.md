@@ -127,7 +127,7 @@ Then wait for the user's research query.
 7. **Add GitHub permalinks (if applicable):**
    - Check if on main branch or if commit is pushed:
      - For git users: `git branch --show-current` and `git status`
-     - For jj users: `jj bookmark list` and `jj status`
+     - For jj users: `jj bookmark list` and `jj log -r @` (to see if pushed)
    - If on main/master or pushed, generate GitHub permalinks:
      - Get repo info: `gh repo view --json owner,name`
      - Create permalinks: `https://github.com/{owner}/{repo}/blob/{commit}/{file}#L{line}`

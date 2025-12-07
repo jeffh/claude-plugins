@@ -16,15 +16,7 @@ Use the following information to understand how to create your document:
         - ENG-XXXX is the ticket number (replace with `general` if no ticket)
         - ENG-ZZZZ is the ticket number (omit if no ticket)
         - description is a brief kebab-case description
-    - Gather metadata using version control commands:
-        - For git users:
-            - Current commit: `git rev-parse HEAD`
-            - Current branch: `git branch --show-current`
-            - Repository name: `basename $(git rev-parse --show-toplevel)`
-        - For jj users:
-            - Current commit: `jj log -r @ --no-graph -T 'commit_id'`
-            - Current bookmark: `jj bookmark list | grep '\*' | awk '{print $1}'`
-            - Repository name: `basename $(jj root)`
+    - Invoke the **spec-metadata** skill using the Skill tool to gather all relevant metadata
     - Examples:
         - With ticket: `2025-01-08_13-55-22_ENG-2166_create-context-compaction.md`
         - Without ticket: `2025-01-08_13-55-22_create-context-compaction.md`
@@ -73,9 +65,8 @@ type: implementation_strategy
 ```
 ---
 
-### 3. Confirm Completion
-
-Once the handoff document is created, you should respond to the user with the template between <template_response></template_response> XML tags. do NOT include the tags in your response.
+### 3. Present to User
+Once the handoff document is created, respond to the user with the template between <template_response></template_response> XML tags. do NOT include the tags in your response.
 
 <template_response>
 Handoff created! You can resume from this handoff in a new session with the following command:
