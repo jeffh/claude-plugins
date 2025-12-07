@@ -42,7 +42,7 @@ For each copied file (both commands and agents):
 
 For each copied file (both commands and agents):
 
-1. Search for references to scripts in `scripts/*` directory
+1. Search for references to scripts in `scripts/*` and `hack/*` directory
 2. For each script reference found:
    - Read the script content from the source repository
    - Create a new skill directory in `humanlayer/skills/` with a descriptive name based on the script's purpose
