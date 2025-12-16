@@ -1,47 +1,116 @@
-# Commit Changes
+---
+description: Create jj changes with user approval and no Claude attribution
+model: claude-haiku-4-5
+---
 
-You are tasked with creating jj commits for the changes made during this session.
+# Commit Changes with Jujutsu
 
-## Process:
+You are tasked with creating jj changes for the work done during this session.
 
-1. **Think about what changed:**
-   - Review the conversation history and understand what was accomplished
-   - Run `jj status` to see current changes
-   - Run `jj diff` to understand the modifications
-   - Consider whether changes should be one commit or multiple logical commits
+## Process
 
-2. **Plan your commit(s):**
-   - Identify which files belong together
-   - Draft clear, descriptive commit messages
-   - Use imperative mood in commit messages
-   - Focus on why the changes were made, not just what
+### 1. Understand What Changed
 
-3. **Present your plan to the user:**
-   - List the files you plan to include for each commit
-   - Show the commit message(s) you'll use
-   - Ask: "I plan to create [N] commit(s) with these changes. Shall I proceed?"
+- Review the conversation history to understand what was accomplished
+- Run `jj status` to see modified files
+- Run `jj diff` to review the actual changes
+- Determine if changes should be one change or split into multiple logical changes
 
-4. **Execute upon confirmation:**
-   - Use `jj describe` to set the commit message for the current working copy
-   - Use `jj split` if multiple logical commits are needed
-   - Show the result with `jj log -n [number]`
+### 2. Plan Your Change(s)
 
-## Important:
+Draft clear, descriptive commit messages following these guidelines:
+
+**Format:**
+```
+<type>: <subject>
+
+[optional body]
+```
+
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`
+
+**Rules:**
+- Subject line: imperative mood, lowercase, no period, max 50 chars
+- Body: wrap at 72 chars, explain WHY not just WHAT
+- Focus on the user's intent, not implementation details
+
+**Examples:**
+- `feat: add dark mode toggle to settings`
+- `fix: prevent crash when config file is missing`
+- `refactor: extract validation logic into separate module`
+
+### 3. Present Your Plan
+
+Show the user:
+- Which files are included in each change
+- The proposed commit message(s)
+- Ask: "I plan to create [N] change(s). Shall I proceed?"
+
+### 4. Execute Upon Confirmation
+
+**For a single change:**
+```bash
+jj describe -m "your commit message"
+```
+
+**For multiple changes** (split by file paths):
+```bash
+# Split specific files into first change with message
+jj split -m "first change message" path/to/file1 path/to/dir/
+
+# Describe the remaining change (now in @)
+jj describe -m "second change message"
+```
+
+For three or more changes, chain splits:
+```bash
+jj split -m "first message" files-for-first-change/
+jj split -m "second message" files-for-second-change/
+jj describe -m "third message"
+```
+
+**Show results:**
+```bash
+jj log -r 'ancestors(@, 5)'
+```
+
+## Important Rules
+
 - **NEVER add co-author information or Claude attribution**
 - Commits should be authored solely by the user
-- Do not include any "Generated with Claude" messages
-- Do not add "Co-Authored-By" lines
+- Do not include "Generated with Claude" or "Co-Authored-By" lines
 - Write commit messages as if the user wrote them
 
-## Jujutsu-specific notes:
-- Jujutsu automatically tracks all changes in the working copy
-- Use `jj describe` to set the commit message
-- Use `jj split` to split changes into multiple commits if needed
-- Use `jj squash` to combine commits if necessary
-- The working copy revision is automatically updated
+## Jujutsu Concepts
 
-## Remember:
-- You have the full context of what was done in this session
-- Group related changes together
-- Keep commits focused and atomic when possible
+- **Automatic tracking**: All file changes are automatically tracked in the working copy change (@)
+- **No staging**: Unlike git, there's no staging area - `jj describe` sets the message directly
+- **Working copy is a change**: The @ revision always represents uncommitted work
+- **`jj new`**: Creates a new empty change on top of the current one (use after describing to start fresh)
+- **`jj split -m "msg" paths`**: Non-interactively splits specified paths into a new change with the given message
+- **`jj squash`**: Combines the current change into its parent
+
+## Common Patterns
+
+**Describe current work and start fresh:**
+```bash
+jj describe -m "message"
+jj new
+```
+
+**View recent changes:**
+```bash
+jj log -r 'ancestors(@, 10)'
+```
+
+**Check what will be committed:**
+```bash
+jj diff -r @
+```
+
+## Remember
+
+- You have full context of what was done this session
+- Group related changes together logically
+- Keep changes focused and atomic
 - The user trusts your judgment - they asked you to commit
