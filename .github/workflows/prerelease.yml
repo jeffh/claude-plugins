@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: release
+  cancel-in-progress: false
 
 jobs:
   prerelease:
@@ -26,8 +26,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
-          cache: 'npm'
+          node-version: "lts/*"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -35,9 +35,104 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Create Prerelease
-        uses: go-semantic-release/action@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: true
-          changelog-generator-opt: "emojis=true"
+      - name: Determine next version and generate notes
+        id: version
+        run: |
+          # Get latest non-pre release tag
+          LATEST_TAG=$(git tag -l 'v*' | grep -v '\-pre' | sort -V | tail -1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            echo "next=0.1.0" >> $GITHUB_OUTPUT
+            echo "No previous tag found" > release-notes.md
+            exit 0
+          fi
+
+          # Parse version components
+          VERSION=${LATEST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          # Get commit hashes and messages since last tag
+          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%H %s" 2>/dev/null || echo "")
+
+          # Categorize commits
+          BREAKING=""
+          FEATURES=""
+          FIXES=""
+          OTHER=""
+
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            HASH=$(echo "$line" | cut -d' ' -f1)
+            MSG=$(echo "$line" | cut -d' ' -f2-)
+            SHORT_HASH=${HASH:0:7}
+
+            if echo "$MSG" | grep -qE "^.*!:|BREAKING CHANGE:"; then
+              BREAKING="${BREAKING}- ${MSG} (${SHORT_HASH})\n"
+            elif echo "$MSG" | grep -qE "^feat(\(.+\))?:"; then
+              FEATURES="${FEATURES}- ${MSG} (${SHORT_HASH})\n"
+            elif echo "$MSG" | grep -qE "^fix(\(.+\))?:"; then
+              FIXES="${FIXES}- ${MSG} (${SHORT_HASH})\n"
+            else
+              OTHER="${OTHER}- ${MSG} (${SHORT_HASH})\n"
+            fi
+          done <<< "$COMMITS"
+
+          # Determine bump type based on commits
+          if [ -n "$BREAKING" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ -n "$FEATURES" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          echo "next=${MAJOR}.${MINOR}.${PATCH}" >> $GITHUB_OUTPUT
+
+          # Generate release notes
+          {
+            echo "## What's Changed"
+            echo ""
+            if [ -n "$BREAKING" ]; then
+              echo "### Breaking Changes"
+              echo -e "$BREAKING"
+            fi
+            if [ -n "$FEATURES" ]; then
+              echo "### Features"
+              echo -e "$FEATURES"
+            fi
+            if [ -n "$FIXES" ]; then
+              echo "### Bug Fixes"
+              echo -e "$FIXES"
+            fi
+            if [ -n "$OTHER" ]; then
+              echo "### Other Changes"
+              echo -e "$OTHER"
+            fi
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${LATEST_TAG}...v${MAJOR}.${MINOR}.${PATCH}-pre"
+          } > release-notes.md
+
+      - name: Create or update draft pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEXT_VERSION="${{ steps.version.outputs.next }}"
+          TAG="v${NEXT_VERSION}-pre"
+
+          # Delete existing draft pre-release if it exists
+          EXISTING_DRAFT=$(gh release list --limit 20 | grep -E "Draft.*Pre-release" | awk '{print $1}' | head -1 || true)
+          if [ -n "$EXISTING_DRAFT" ]; then
+            echo "Deleting existing draft: $EXISTING_DRAFT"
+            gh release delete "$EXISTING_DRAFT" --yes --cleanup-tag || true
+          fi
+
+          # Create new draft pre-release with categorized notes
+          echo "Creating draft pre-release: $TAG"
+          gh release create "$TAG" \
+            --draft \
+            --prerelease \
+            --notes-file release-notes.md \
+            --target main \
+            --title "$TAG"

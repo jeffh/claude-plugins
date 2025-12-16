@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Promote Pre-release to Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find draft pre-release
+        id: find
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Find the draft pre-release
+          DRAFT_INFO=$(gh release list --limit 20 | grep -E "Draft.*Pre-release" | head -1 || true)
+
+          if [ -z "$DRAFT_INFO" ]; then
+            echo "No draft pre-release found"
+            exit 1
+          fi
+
+          DRAFT_TAG=$(echo "$DRAFT_INFO" | awk '{print $1}')
+          echo "Found draft pre-release: $DRAFT_TAG"
+          echo "draft_tag=$DRAFT_TAG" >> $GITHUB_OUTPUT
+
+          # Calculate release tag (remove -pre suffix)
+          RELEASE_TAG=${DRAFT_TAG%-pre}
+          echo "Release tag will be: $RELEASE_TAG"
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Get draft release notes
+        id: notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DRAFT_TAG="${{ steps.find.outputs.draft_tag }}"
+          RELEASE_TAG="${{ steps.find.outputs.release_tag }}"
+
+          # Get the release notes from the draft
+          gh release view "$DRAFT_TAG" --json body -q '.body' > release-notes.md
+
+          # Update the changelog link to use the release tag
+          sed -i "s|${DRAFT_TAG}|${RELEASE_TAG}|g" release-notes.md
+
+      - name: Create full release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DRAFT_TAG="${{ steps.find.outputs.draft_tag }}"
+          RELEASE_TAG="${{ steps.find.outputs.release_tag }}"
+
+          # Delete the draft pre-release
+          echo "Deleting draft pre-release: $DRAFT_TAG"
+          gh release delete "$DRAFT_TAG" --yes --cleanup-tag
+
+          # Create the full release
+          echo "Creating release: $RELEASE_TAG"
+          gh release create "$RELEASE_TAG" \
+            --notes-file release-notes.md \
+            --target main \
+            --title "$RELEASE_TAG"
+
+          echo "Successfully promoted $DRAFT_TAG to $RELEASE_TAG"
