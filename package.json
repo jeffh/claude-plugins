@@ -5,13 +5,17 @@
   "private": true,
   "scripts": {
     "validate": "node scripts/validate-plugins.js",
-    "test": "node scripts/validate-plugins.js"
+    "test": "node scripts/validate-plugins.js",
+    "semantic-release": "semantic-release"
   },
   "devDependencies": {
     "ajv": "^8.12.0",
     "ajv-formats": "^3.0.1",
     "glob": "^11.0.3",
-    "yaml-front-matter": "^4.1.1"
+    "yaml-front-matter": "^4.1.1",
+    "semantic-release": "^24.2.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1"
   },
   "engines": {
     "node": ">=18.0.0"
