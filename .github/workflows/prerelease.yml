@@ -1,143 +1,25 @@
 name: Create Prerelease
 
 on:
-  workflow_run:
-    workflows: ["Validate Claude Plugins"]
-    types:
-      - completed
-    branches: ["main"]
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   prerelease:
-    name: Create Prerelease
+    name: Create Prerelease PR
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - name: Run release-please
+        uses: googleapis/release-please-action@v4
         with:
-          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get next version
-        id: version
-        run: |
-          # Get the latest release tag (non-prerelease)
-          LATEST_TAG=$(git tag -l 'v*' --sort=-v:refname | grep -v '\-pre' | head -n1 || echo "v0.0.0")
-          if [ -z "$LATEST_TAG" ]; then
-            LATEST_TAG="v0.0.0"
-          fi
-          echo "Latest release tag: $LATEST_TAG"
-
-          # Extract version components
-          VERSION=${LATEST_TAG#v}
-          MAJOR=$(echo $VERSION | cut -d. -f1)
-          MINOR=$(echo $VERSION | cut -d. -f2)
-          PATCH=$(echo $VERSION | cut -d. -f3)
-
-          # For prereleases, increment patch and add -pre suffix
-          PATCH=$((PATCH + 1))
-          PRERELEASE_VERSION="v${MAJOR}.${MINOR}.${PATCH}-pre"
-
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "prerelease_version=$PRERELEASE_VERSION" >> $GITHUB_OUTPUT
-          echo "Prerelease version: $PRERELEASE_VERSION"
-
-      - name: Generate changelog
-        run: |
-          PREV_TAG="${{ steps.version.outputs.latest_tag }}"
-
-          # Create changelog file
-          echo "## What's Changed" > /tmp/changelog.txt
-          echo "" >> /tmp/changelog.txt
-
-          # Check if we have a previous tag to compare against
-          if [ "$PREV_TAG" != "v0.0.0" ] && git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
-            RANGE="${PREV_TAG}..HEAD"
-          else
-            RANGE="HEAD"
-          fi
-
-          # Features (feat:)
-          FEATURES=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^feat(\(.+\))?:" | sed 's/^feat(\([^)]*\)): /- **\1**: /' | sed 's/^feat: /- /' || true)
-          if [ -n "$FEATURES" ]; then
-            echo "### Features" >> /tmp/changelog.txt
-            echo "$FEATURES" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Bug fixes (fix:)
-          FIXES=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^fix(\(.+\))?:" | sed 's/^fix(\([^)]*\)): /- **\1**: /' | sed 's/^fix: /- /' || true)
-          if [ -n "$FIXES" ]; then
-            echo "### Bug Fixes" >> /tmp/changelog.txt
-            echo "$FIXES" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Performance (perf:)
-          PERF=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^perf(\(.+\))?:" | sed 's/^perf(\([^)]*\)): /- **\1**: /' | sed 's/^perf: /- /' || true)
-          if [ -n "$PERF" ]; then
-            echo "### Performance" >> /tmp/changelog.txt
-            echo "$PERF" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Refactoring (refactor:)
-          REFACTOR=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^refactor(\(.+\))?:" | sed 's/^refactor(\([^)]*\)): /- **\1**: /' | sed 's/^refactor: /- /' || true)
-          if [ -n "$REFACTOR" ]; then
-            echo "### Refactoring" >> /tmp/changelog.txt
-            echo "$REFACTOR" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Documentation (docs:)
-          DOCS=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^docs(\(.+\))?:" | sed 's/^docs(\([^)]*\)): /- **\1**: /' | sed 's/^docs: /- /' || true)
-          if [ -n "$DOCS" ]; then
-            echo "### Documentation" >> /tmp/changelog.txt
-            echo "$DOCS" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Check if changelog has any content beyond the header
-          if [ $(wc -l < /tmp/changelog.txt) -le 2 ]; then
-            echo "- Maintenance updates" >> /tmp/changelog.txt
-          fi
-
-          cat /tmp/changelog.txt
-
-      - name: Delete existing prerelease
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Delete any existing prerelease with the same tag
-          gh release delete "${{ steps.version.outputs.prerelease_version }}" --yes 2>/dev/null || echo "No existing release to delete"
-          git push --delete origin "${{ steps.version.outputs.prerelease_version }}" 2>/dev/null || echo "No existing tag to delete"
-
-      - name: Update marketplace.json version
-        run: |
-          VERSION="${{ steps.version.outputs.prerelease_version }}"
-          VERSION_NO_V="${VERSION#v}"
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION_NO_V\"/" .claude-plugin/marketplace.json
-
-      - name: Commit version updates
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .claude-plugin/marketplace.json
-          git commit -m "chore: bump version to ${{ steps.version.outputs.prerelease_version }}" || echo "No changes to commit"
-          git push || echo "No changes to push"
-
-      - name: Create prerelease
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "${{ steps.version.outputs.prerelease_version }}" \
-            --title "Prerelease ${{ steps.version.outputs.prerelease_version }}" \
-            --notes-file /tmp/changelog.txt \
-            --prerelease \
-            --target main
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          prerelease: true
+          prerelease-type: pre

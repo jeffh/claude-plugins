@@ -5,130 +5,18 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   release:
-    name: Promote Prerelease to Release
+    name: Create Release PR
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - name: Run release-please
+        uses: googleapis/release-please-action@v4
         with:
-          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get prerelease version
-        id: version
-        run: |
-          # Get the latest prerelease tag
-          PRERELEASE_TAG=$(git tag -l 'v*-pre' --sort=-v:refname | head -n1 || echo "")
-          if [ -z "$PRERELEASE_TAG" ]; then
-            echo "No prerelease found to promote"
-            exit 1
-          fi
-          echo "Prerelease tag: $PRERELEASE_TAG"
-
-          # Convert prerelease to release version (remove -pre suffix)
-          RELEASE_VERSION="${PRERELEASE_TAG%-pre}"
-
-          # Get the previous release tag (non-prerelease) for changelog
-          PREV_TAG=$(git tag -l 'v*' --sort=-v:refname | grep -v '\-pre' | head -n1 || echo "")
-
-          echo "prerelease_tag=$PRERELEASE_TAG" >> $GITHUB_OUTPUT
-          echo "release_version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-          echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
-          echo "Release version: $RELEASE_VERSION"
-          echo "Previous release: $PREV_TAG"
-
-      - name: Generate changelog
-        run: |
-          PREV_TAG="${{ steps.version.outputs.prev_tag }}"
-
-          # Create changelog file
-          echo "## What's Changed" > /tmp/changelog.txt
-          echo "" >> /tmp/changelog.txt
-
-          # Check if we have a previous tag to compare against
-          if [ -n "$PREV_TAG" ] && git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
-            RANGE="${PREV_TAG}..HEAD"
-          else
-            RANGE="HEAD"
-          fi
-
-          # Features (feat:)
-          FEATURES=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^feat(\(.+\))?:" | sed 's/^feat(\([^)]*\)): /- **\1**: /' | sed 's/^feat: /- /' || true)
-          if [ -n "$FEATURES" ]; then
-            echo "### Features" >> /tmp/changelog.txt
-            echo "$FEATURES" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Bug fixes (fix:)
-          FIXES=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^fix(\(.+\))?:" | sed 's/^fix(\([^)]*\)): /- **\1**: /' | sed 's/^fix: /- /' || true)
-          if [ -n "$FIXES" ]; then
-            echo "### Bug Fixes" >> /tmp/changelog.txt
-            echo "$FIXES" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Performance (perf:)
-          PERF=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^perf(\(.+\))?:" | sed 's/^perf(\([^)]*\)): /- **\1**: /' | sed 's/^perf: /- /' || true)
-          if [ -n "$PERF" ]; then
-            echo "### Performance" >> /tmp/changelog.txt
-            echo "$PERF" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Refactoring (refactor:)
-          REFACTOR=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^refactor(\(.+\))?:" | sed 's/^refactor(\([^)]*\)): /- **\1**: /' | sed 's/^refactor: /- /' || true)
-          if [ -n "$REFACTOR" ]; then
-            echo "### Refactoring" >> /tmp/changelog.txt
-            echo "$REFACTOR" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Documentation (docs:)
-          DOCS=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^docs(\(.+\))?:" | sed 's/^docs(\([^)]*\)): /- **\1**: /' | sed 's/^docs: /- /' || true)
-          if [ -n "$DOCS" ]; then
-            echo "### Documentation" >> /tmp/changelog.txt
-            echo "$DOCS" >> /tmp/changelog.txt
-            echo "" >> /tmp/changelog.txt
-          fi
-
-          # Check if changelog has any content beyond the header
-          if [ $(wc -l < /tmp/changelog.txt) -le 2 ]; then
-            echo "- Maintenance updates" >> /tmp/changelog.txt
-          fi
-
-          cat /tmp/changelog.txt
-
-      - name: Update marketplace.json version
-        run: |
-          VERSION="${{ steps.version.outputs.release_version }}"
-          VERSION_NO_V="${VERSION#v}"
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION_NO_V\"/" .claude-plugin/marketplace.json
-
-      - name: Commit version updates
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .claude-plugin/marketplace.json
-          git commit -m "chore: release ${{ steps.version.outputs.release_version }}"
-          git push
-
-      - name: Delete prerelease
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete "${{ steps.version.outputs.prerelease_tag }}" --yes
-          git push --delete origin "${{ steps.version.outputs.prerelease_tag }}"
-
-      - name: Create release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "${{ steps.version.outputs.release_version }}" \
-            --title "Release ${{ steps.version.outputs.release_version }}" \
-            --notes-file /tmp/changelog.txt \
-            --target main
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          prerelease: false
