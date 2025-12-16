@@ -13,7 +13,7 @@
             "description": "Commands and agents from humanlayer, but without the thought syncing",
             "source": "./humanlayer",
             "category": "development",
-            "version": "2025-10-09",
+            "version": "2025-12-15",
             "author": {
                 "name": "HumanLayer"
             }
@@ -23,7 +23,7 @@
             "description": "Jujutsu (jj) version control commands",
             "source": "./jj",
             "category": "development",
-            "version": "2025-10-12",
+            "version": "2025-12-15",
             "author": {
                 "name": "Jeff Hui",
                 "email": "jeff@jeffhui.net"
