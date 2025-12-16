@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
 
 jobs:
   prerelease:
@@ -33,7 +31,9 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Prerelease
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run semantic-release
+      - name: Create Prerelease
+        uses: go-semantic-release/action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: true
+          changelog-generator-opt: "emojis=true"
