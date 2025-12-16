@@ -1,5 +1,6 @@
 ---
 description: Create PRs for all bookmarks in a jj stack with automatic stack linking
+model: claude-haiku-4-5
 ---
 
 # Create Pull Requests from Stack
@@ -72,8 +73,8 @@ For each bookmark (in order from closest to main to furthest):
 **If PR doesn't exist:**
 1. Get the commit details:
    ```bash
-   jj show -r '<bookmark>' --no-graph -T 'description'
-   jj diff -r '<bookmark>'
+   jj show --no-pager -r '<bookmark>' --no-graph -T 'description'
+   jj diff --no-pager -r '<bookmark>'
    ```
 2. Generate PR title from first line of commit description
 3. Generate PR body:
@@ -152,9 +153,9 @@ Include:
 ## Jujutsu-specific notes:
 
 - `jj git push --allow-new` pushes all bookmarks and shows which are new
-- `jj log -r 'ancestors(@, N)'` shows N ancestors of current revision
-- `jj log -r 'bookmarks() ~ main'` shows all bookmarks except main
-- `jj show -r <rev> -T 'description'` gets the full commit message
+- `jj log --no-pager -r 'ancestors(@, N)'` shows N ancestors of current revision
+- `jj log --no-pager -r 'bookmarks() ~ main'` shows all bookmarks except main
+- `jj show --no-pager -r <rev> -T 'description'` gets the full commit message
 - Use `jj log -r '<bookmark>-'` to find the parent of a bookmark
 - Bookmark names become branch names when pushed
 

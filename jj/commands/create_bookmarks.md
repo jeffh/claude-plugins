@@ -1,88 +1,171 @@
+---
+description: Create bookmarks for commits in the current jj stack
+model: claude-haiku-4-5
+---
+
 # Create Bookmarks
 
-You are tasked with creating bookmarks for commits in the current jj tree.
+You are tasked with creating bookmarks for commits in the current jj stack.
 
-## Process:
+## Process
 
-1. **Ask configuration questions:**
-   - Ask the user: "What prefix should be used for bookmarks?" with options:
-     - Default: `$(gh api user | jq -r .login)/` (run this command to get the actual default value)
-     - Custom: Let the user specify a custom prefix
-   - Ask the user: "Should I create a bookmark on the current commit only, or also create bookmarks on previous commits based on logical groupings of changes?" (current only / create multiple bookmarks)
-   - Wait for user responses before proceeding
+### 1. Understand the current state
 
-2. **Check for commits without descriptions:**
-   - Run `jj log -r ::@ --no-graph -T 'separate(" ", change_id.short(), description.first_line())'` to list commits from the current location to the root
-   - Identify commits with empty or placeholder descriptions
-   - If commits without descriptions are found, ask: "I found commits without descriptions. Should I add descriptions to these commits?" (yes/no)
+First, gather information about the stack:
 
-3. **Add descriptions if requested:**
-   - For each commit without a description:
-     - Run `jj diff -r <revset>` to see the changes
-     - Analyze the changes and draft a clear commit message
-     - Use `jj describe -r <revset> -m "<message>"` to add the commit message
-     - Use imperative mood in commit messages
-     - Focus on what the changes accomplish, not just what files changed
+```bash
+# Get the GitHub username for default prefix
+gh api user -q '.login'
 
-4. **Determine bookmark locations:**
-   - If user chose "current only":
-     - Create a single bookmark on the current commit (@)
-     - Ask the user for the bookmark name (the part after the prefix)
-   - If user chose "create multiple bookmarks":
-     - Run `jj log` to visualize the commit tree from current to main
-     - Analyze the commits to identify logical groupings:
-       - Look for related file changes
-       - Look for commits that accomplish a single feature or fix
-       - Look for natural breakpoints between different types of work
-     - Present your analysis to the user:
-       - Show which commits you plan to group together
-       - Suggest bookmark names for each group
-       - Ask: "I plan to create [N] bookmarks with these groupings. Shall I proceed?" (yes/no)
+# View commits in the current stack (not yet on trunk)
+jj log -r 'trunk()..@'
 
-5. **Create bookmarks:**
-   - For each bookmark to be created:
-     - Use `jj bookmark create <bookmark-prefix><bookmark-name> -r <revset>`
-     - The revset should target the specific commit (e.g., `@`, `@-`, `@--`, or a change_id)
-     - If creating multiple bookmarks, work from oldest to newest
-   - Show the result with `jj log` to visualize the new bookmarks
+# List commits with their descriptions (to identify missing descriptions)
+jj log -r 'trunk()..@' --no-graph -T 'separate(" | ", change_id.short(), if(description, description.first_line(), "(no description)")) ++ "\n"'
 
-6. **Generate summary:**
-   - List all bookmarks created with their corresponding commits
-   - Show the command to push these bookmarks: `jj git push --bookmark <bookmark-name>`
-   - Note: The user will need to push bookmarks manually when ready
+# Check for existing bookmarks
+jj log -r 'trunk()..@ & bookmarks()' --no-graph -T 'separate(" ", change_id.short(), bookmarks) ++ "\n"'
+```
 
-## Important:
+- Identify how many commits are in the stack
+- Note which commits have descriptions vs. which are empty
+- Identify any existing bookmarks
 
-- **Bookmark naming:**
-  - Use descriptive names that explain what the changes accomplish
-  - Use kebab-case for multi-word names (e.g., `fix-login-bug`)
-  - Keep names concise but meaningful
+### 2. Ask configuration questions
 
-- **Commit descriptions:**
-  - Never add co-author information or Claude attribution
-  - Write commit messages as if the user wrote them
-  - Use imperative mood (e.g., "Add feature" not "Added feature")
-  - Focus on why the changes were made, not just what
+Based on what you found, ask the user:
 
-- **Logical groupings:**
-  - Group commits that work together toward a single goal
-  - Consider whether commits should be reviewed together
-  - Think about what would make sense as a single PR
-  - Respect natural boundaries between features/fixes
+**Bookmark prefix:**
+- Default: `<github-username>/` (use the username from step 1)
+- Custom: Let user specify
 
-## Jujutsu-specific notes:
+**Bookmark scope:** (only ask if multiple commits exist)
+- "Current commit only" - Single bookmark on `@`
+- "Multiple bookmarks" - Create bookmarks based on logical groupings
 
-- Use `jj bookmark create <name> -r <revset>` to create bookmarks
-- Revsets can target specific commits: `@` (current), `@-` (parent), change IDs
-- Use `jj log -r ::@` to see commits from current to root
-- Use `jj log -r @..main` to see commits between current and main (if applicable)
-- Use `jj diff -r <revset>` to see changes in a specific commit
-- Use `jj describe -r <revset> -m "message"` to set commit descriptions
-- Bookmarks are local until pushed with `jj git push --bookmark <name>`
+Wait for user responses before proceeding.
 
-## Remember:
+### 3. Check and fix commit descriptions
 
-- You have the full context of the commit history
-- Ask clarifying questions if the logical groupings aren't obvious
-- The user trusts your judgment on groupings, but present your plan first
-- Clear bookmark names help with organization and PR creation later
+If any commits lack descriptions:
+
+1. Report which commits are missing descriptions (list their change IDs)
+2. Ask: "Should I add descriptions to these commits?"
+
+If yes, invoke `/jj:commit <revset>` with the commits that need descriptions:
+- Single commit: `/jj:commit xyz`
+- Multiple commits: `/jj:commit 'abc | def | ghi'`
+- All in stack: `/jj:commit 'trunk()..@'`
+
+After descriptions are added, continue to step 4.
+
+### 4. Plan bookmark placement
+
+**For single bookmark (current only):**
+- Ask user for the bookmark name (part after prefix)
+- Bookmark will be placed on `@`
+
+**For multiple bookmarks:**
+1. Analyze the commits to identify logical groupings:
+   - Related file changes (same module/feature area)
+   - Commits that accomplish a single goal
+   - Natural breakpoints (different types of work)
+
+2. Present your analysis:
+   ```
+   I found [N] commits and propose [M] bookmarks:
+
+   Bookmark 1: <prefix>/<name>
+   - <change_id>: <description>
+   - <change_id>: <description>
+
+   Bookmark 2: <prefix>/<name>
+   - <change_id>: <description>
+   ```
+
+3. Ask: "Shall I proceed with these bookmarks?"
+
+### 5. Create bookmarks
+
+For each bookmark (work from oldest to newest in stack):
+
+```bash
+# Create the bookmark on the target commit
+jj bookmark create <prefix><name> -r <change_id>
+```
+
+Then show the result:
+```bash
+jj log -r 'trunk()..@'
+```
+
+### 6. Generate summary
+
+Present:
+- Table of bookmarks created with their commits
+- Command to push: `jj git push --allow-new`
+- Remind user bookmarks are local until pushed
+
+## Important
+
+**Bookmark naming:**
+- Use kebab-case for multi-word names (e.g., `fix-login-bug`)
+- Names should describe what the changes accomplish
+- Keep names concise but meaningful
+
+**Commit descriptions:**
+- NEVER add co-author information or Claude attribution
+- Write commit messages as if the user wrote them
+- Use imperative mood ("Add feature" not "Added feature")
+
+**Logical groupings:**
+- Group commits that work toward a single goal
+- Consider what makes sense as a single PR
+- Each bookmark should represent reviewable, coherent work
+
+## Error handling
+
+**No commits to bookmark:**
+- If `trunk()..@` returns nothing, inform user there are no uncommitted changes to bookmark
+- Suggest using `/jj:commit` first if there are pending changes
+
+**trunk() not configured:**
+- Fall back to checking `main@origin` or `master@origin`:
+  ```bash
+  jj log -r 'main@origin | master@origin' --no-graph -T 'bookmarks'
+  ```
+- Use whichever exists (prefer `main@origin`)
+
+**Bookmark already exists:**
+- If a bookmark name is taken, report it and ask for an alternative
+- Use `jj bookmark list` to check existing names
+
+## Edge cases
+
+**Single commit in stack:**
+- Skip the "scope" question, default to single bookmark
+- Proceed directly to asking for the bookmark name
+
+**All commits already have bookmarks:**
+- Report this to the user
+- Ask if they want to create additional bookmarks or update existing ones
+
+**Empty working copy:**
+- `@` may have no changes - this is normal in jj
+- The most recent described commit should get the bookmark
+
+## Jujutsu-specific notes
+
+- `trunk()` is jj's built-in revset for the primary branch
+- `trunk()..@` shows commits between trunk and current (exclusive trunk)
+- `jj bookmark create <name> -r <revset>` creates a bookmark
+- `jj bookmark list` shows all local bookmarks
+- `jj git push --allow-new` pushes new bookmarks to remote
+- Change IDs (short form like `xyz`) can be used in revsets
+
+## Remember
+
+- Understand the state before asking questions
+- Present your plan before executing
+- Bookmarks enable the `/jj:create_prs` workflow
+- Clear bookmark names help with PR organization

@@ -31,7 +31,7 @@ Rebase the current changeset stack onto the latest trunk.
 ## Handling Conflicts
 
 If rebase reports conflicts:
-1. Run `jj status` to see conflicted files
+1. Run `jj status --no-pager` to see conflicted files
 2. Report the conflicts to the user
 3. Do NOT attempt to resolve automatically - let the user decide how to proceed
 

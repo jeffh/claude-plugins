@@ -7,14 +7,28 @@ model: claude-haiku-4-5
 
 You are tasked with creating jj changes for the work done during this session.
 
+## Optional Parameter
+
+This command accepts an optional revset argument:
+- `/jj:commit` - Operate on the current working copy (`@`)
+- `/jj:commit <revset>` - Operate on specific revision(s) (e.g., `xyz`, `@-`, `trunk()..@`)
+
+When a revset is provided, only add/update descriptions for those commits. Do not split or modify other commits.
+
 ## Process
 
 ### 1. Understand What Changed
 
+**If no revset provided (default):**
 - Review the conversation history to understand what was accomplished
-- Run `jj status` to see modified files
-- Run `jj diff` to review the actual changes
+- Run `jj status --no-pager` to see modified files
+- Run `jj diff --no-pager` to review the actual changes
 - Determine if changes should be one change or split into multiple logical changes
+
+**If revset provided:**
+- Run `jj log --no-pager -r '<revset>'` to see which commits need descriptions
+- Run `jj diff --no-pager -r '<change_id>'` for each commit to understand its changes
+- Focus only on adding descriptions to the specified commits
 
 ### 2. Plan Your Change(s)
 
@@ -48,12 +62,17 @@ Show the user:
 
 ### 4. Execute Upon Confirmation
 
-**For a single change:**
+**For a single change (no revset):**
 ```bash
 jj describe -m "your commit message"
 ```
 
-**For multiple changes** (split by file paths):
+**For a specific revision (revset provided):**
+```bash
+jj describe -r <change_id> -m "your commit message"
+```
+
+**For multiple changes** (split by file paths, no revset only):
 ```bash
 # Split specific files into first change with message
 jj split -m "first change message" path/to/file1 path/to/dir/
@@ -71,7 +90,11 @@ jj describe -m "third message"
 
 **Show results:**
 ```bash
-jj log -r 'ancestors(@, 5)'
+# Default (no revset)
+jj log --no-pager -r 'ancestors(@, 5)'
+
+# With revset
+jj log --no-pager -r '<revset>'
 ```
 
 ## Important Rules
@@ -100,12 +123,12 @@ jj new
 
 **View recent changes:**
 ```bash
-jj log -r 'ancestors(@, 10)'
+jj log --no-pager -r 'ancestors(@, 10)'
 ```
 
 **Check what will be committed:**
 ```bash
-jj diff -r @
+jj diff --no-pager -r @
 ```
 
 ## Remember
