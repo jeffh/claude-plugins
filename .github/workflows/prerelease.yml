@@ -114,18 +114,24 @@ jobs:
             echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${LATEST_TAG}...v${MAJOR}.${MINOR}.${PATCH}-pre"
           } > release-notes.md
 
-      - name: Create or update draft pre-release
+      - name: Create or update pre-release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           NEXT_VERSION="${{ steps.version.outputs.next }}"
           TAG="v${NEXT_VERSION}-pre"
 
-          # Delete existing pre-release if it exists
-          EXISTING_PRERELEASE=$(gh release list --limit 20 | grep -E "\tPre-release\t" | awk '{print $1}' | head -1 || true)
-          if [ -n "$EXISTING_PRERELEASE" ]; then
-            echo "Deleting existing pre-release: $EXISTING_PRERELEASE"
-            gh release delete "$EXISTING_PRERELEASE" --yes --cleanup-tag || true
+          # Delete existing release for this tag if it exists
+          if gh release view "$TAG" &>/dev/null; then
+            echo "Deleting existing release: $TAG"
+            gh release delete "$TAG" --yes || true
+          fi
+
+          # Delete the tag if it exists (locally and remotely)
+          if git rev-parse "$TAG" &>/dev/null; then
+            echo "Deleting existing tag: $TAG"
+            git tag -d "$TAG" || true
+            git push origin ":refs/tags/$TAG" || true
           fi
 
           # Create new pre-release with categorized notes
