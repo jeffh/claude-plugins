@@ -1,6 +1,7 @@
 ---
 description: Commit, create bookmarks, push, and create PRs in one workflow
 model: claude-sonnet-4-5
+tools: Bash(jj status:*), Bash(jj log:*), Bash(jj bookmark create:*), Bash(jj git push:*), Bash(gh api:*), Bash(gh pr list:*), Bash(gh pr create:*), SlashCommand
 ---
 
 # Commit, Push, and Create PRs

@@ -1,6 +1,7 @@
 ---
 description: Create PRs for all bookmarks in a jj stack with automatic stack linking
 model: claude-haiku-4-5
+tools: Bash(jj log:*), Bash(jj git push:*), Bash(jj show:*), Bash(jj diff:*), Bash(gh pr list:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*)
 ---
 
 # Create Pull Requests from Stack
