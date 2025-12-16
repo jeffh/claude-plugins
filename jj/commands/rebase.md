@@ -1,60 +1,59 @@
-# Rebase Current Changeset
+# Rebase Current Stack
 
-You are tasked with rebasing the current changeset onto the primary branch.
+Rebase the current changeset stack onto the latest trunk.
 
-## Process:
+## Process
 
-1. **Determine the primary branch:**
-   - Run `jj log -r 'bookmarks()' --no-graph` to list all bookmarks
-   - Check if `main` or `master` exists in the bookmark list
-   - If `main` exists, use it as the primary branch
-   - If `main` doesn't exist but `master` does, use `master` as the primary branch
-   - If neither exists, ask the user: "What is the name of your primary branch?"
-   - Wait for the user's response before proceeding
+1. **Fetch latest changes:**
+   ```bash
+   jj git fetch
+   ```
 
-2. **Pull latest changes:**
-   - Run `jj git fetch` to fetch the latest changes from the remote
-   - This ensures we're rebasing onto the latest version of the primary branch
+2. **Identify the stack root:**
+   ```bash
+   jj log -r 'roots(::@ ~ ::trunk())'
+   ```
+   - This finds the earliest changeset in the current stack that's not on trunk
+   - If this returns nothing, you're already on trunk - nothing to rebase
 
-3. **Identify the changeset to rebase:**
-   - Run `jj log -r 'mine() & ::@'` to see the current changeset and its ancestors
-   - The current changeset is marked with `@` in the log
-   - Identify the changeset ID of the current working copy (the one with `@`)
+3. **Rebase the stack:**
+   ```bash
+   jj rebase -s 'roots(::@ ~ ::trunk())' -d trunk()
+   ```
+   - This rebases the entire stack (from root through `@`) onto trunk
+   - Uses the same revset expression to ensure consistency
 
-4. **Rebase the changeset:**
-   - Run `jj rebase -s <changeset-id> -d <primary-branch>`
-   - Where `<changeset-id>` is the ID of the current working copy
-   - Where `<primary-branch>` is the primary branch determined in step 1
-   - This rebases the current changeset and all its descendants onto the primary branch
+4. **Show result:**
+   ```bash
+   jj log
+   ```
 
-5. **Show the result:**
-   - Run `jj log` to display the updated commit tree
-   - Confirm to the user that the rebase was successful
+## Handling Conflicts
 
-## Important:
+If rebase reports conflicts:
+1. Run `jj status` to see conflicted files
+2. Report the conflicts to the user
+3. Do NOT attempt to resolve automatically - let the user decide how to proceed
 
-- **DO NOT rebase changesets that are part of bookmarks you plan to delete**
-- Only rebase the current changeset chain, not other branches
-- If there are conflicts during rebase, report them to the user and stop
-- Use `jj git fetch` instead of `jj git pull` to avoid automatic merging
+## Edge Cases
 
-## Jujutsu-specific notes:
+**Empty working copy (`@` has no changes):**
+- This is normal in jj - the working copy can be empty
+- The rebase still works; it rebases the stack
 
-- `jj rebase -s <source> -d <destination>` rebases the source changeset and all its descendants
-- The `-s` flag specifies the source changeset to rebase
-- The `-d` flag specifies the destination to rebase onto
-- Jujutsu handles rebasing automatically, updating the working copy
-- Use changeset IDs or revision expressions (like `@` for current working copy)
+**Already on trunk:**
+- If `roots(::@ ~ ::trunk())` returns nothing, inform the user they're already up to date
 
-## Error handling:
+**trunk() not configured:**
+- If `trunk()` fails, fall back to checking for `main@origin` or `master@origin`:
+  ```bash
+  jj log -r 'main@origin | master@origin' --no-graph -T 'self.bookmarks()'
+  ```
+- Use whichever exists (prefer `main@origin`)
 
-- If `jj git fetch` fails, report the error and stop
-- If the primary branch doesn't exist locally, report this and ask the user to verify
-- If rebase fails due to conflicts, report the conflicts and provide guidance
-- If the user is not on a changeset that can be rebased, explain why
+## Notes
 
-## Remember:
-
-- Rebasing updates the working copy to be based on the latest primary branch
-- This is useful before creating pull requests or pushing changes
-- The user trusts your judgment to identify the correct changeset to rebase
+- `trunk()` is jj's built-in revset for the primary branch (respects repo config)
+- `-s` rebases the source and all descendants
+- `::@` means "all ancestors of @ including @"
+- `~ ::trunk()` excludes trunk and its ancestors
