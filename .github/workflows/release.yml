@@ -26,15 +26,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Find the latest pre-release
-          PRERELEASE_INFO=$(gh release list --limit 20 | grep -E "\tPre-release\t" | head -1 || true)
+          # Find the latest pre-release using JSON output for reliability
+          PRERELEASE_TAG=$(gh release list --json tagName,isPrerelease --jq '.[] | select(.isPrerelease) | .tagName' | head -1)
 
-          if [ -z "$PRERELEASE_INFO" ]; then
+          if [ -z "$PRERELEASE_TAG" ]; then
             echo "No pre-release found"
             exit 1
           fi
 
-          PRERELEASE_TAG=$(echo "$PRERELEASE_INFO" | awk '{print $1}')
           echo "Found pre-release: $PRERELEASE_TAG"
           echo "prerelease_tag=$PRERELEASE_TAG" >> $GITHUB_OUTPUT
 
