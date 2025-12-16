@@ -21,52 +21,52 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Find draft pre-release
+      - name: Find pre-release
         id: find
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Find the draft pre-release
-          DRAFT_INFO=$(gh release list --limit 20 | grep -E "Draft.*Pre-release" | head -1 || true)
+          # Find the latest pre-release
+          PRERELEASE_INFO=$(gh release list --limit 20 | grep -E "\tPre-release\t" | head -1 || true)
 
-          if [ -z "$DRAFT_INFO" ]; then
-            echo "No draft pre-release found"
+          if [ -z "$PRERELEASE_INFO" ]; then
+            echo "No pre-release found"
             exit 1
           fi
 
-          DRAFT_TAG=$(echo "$DRAFT_INFO" | awk '{print $1}')
-          echo "Found draft pre-release: $DRAFT_TAG"
-          echo "draft_tag=$DRAFT_TAG" >> $GITHUB_OUTPUT
+          PRERELEASE_TAG=$(echo "$PRERELEASE_INFO" | awk '{print $1}')
+          echo "Found pre-release: $PRERELEASE_TAG"
+          echo "prerelease_tag=$PRERELEASE_TAG" >> $GITHUB_OUTPUT
 
           # Calculate release tag (remove -pre suffix)
-          RELEASE_TAG=${DRAFT_TAG%-pre}
+          RELEASE_TAG=${PRERELEASE_TAG%-pre}
           echo "Release tag will be: $RELEASE_TAG"
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Get draft release notes
+      - name: Get pre-release notes
         id: notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DRAFT_TAG="${{ steps.find.outputs.draft_tag }}"
+          PRERELEASE_TAG="${{ steps.find.outputs.prerelease_tag }}"
           RELEASE_TAG="${{ steps.find.outputs.release_tag }}"
 
-          # Get the release notes from the draft
-          gh release view "$DRAFT_TAG" --json body -q '.body' > release-notes.md
+          # Get the release notes from the pre-release
+          gh release view "$PRERELEASE_TAG" --json body -q '.body' > release-notes.md
 
           # Update the changelog link to use the release tag
-          sed -i "s|${DRAFT_TAG}|${RELEASE_TAG}|g" release-notes.md
+          sed -i "s|${PRERELEASE_TAG}|${RELEASE_TAG}|g" release-notes.md
 
       - name: Create full release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DRAFT_TAG="${{ steps.find.outputs.draft_tag }}"
+          PRERELEASE_TAG="${{ steps.find.outputs.prerelease_tag }}"
           RELEASE_TAG="${{ steps.find.outputs.release_tag }}"
 
-          # Delete the draft pre-release
-          echo "Deleting draft pre-release: $DRAFT_TAG"
-          gh release delete "$DRAFT_TAG" --yes --cleanup-tag
+          # Delete the pre-release
+          echo "Deleting pre-release: $PRERELEASE_TAG"
+          gh release delete "$PRERELEASE_TAG" --yes --cleanup-tag
 
           # Create the full release
           echo "Creating release: $RELEASE_TAG"
@@ -75,4 +75,4 @@ jobs:
             --target main \
             --title "$RELEASE_TAG"
 
-          echo "Successfully promoted $DRAFT_TAG to $RELEASE_TAG"
+          echo "Successfully promoted $PRERELEASE_TAG to $RELEASE_TAG"

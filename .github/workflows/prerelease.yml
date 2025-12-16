@@ -121,17 +121,16 @@ jobs:
           NEXT_VERSION="${{ steps.version.outputs.next }}"
           TAG="v${NEXT_VERSION}-pre"
 
-          # Delete existing draft pre-release if it exists
-          EXISTING_DRAFT=$(gh release list --limit 20 | grep -E "Draft.*Pre-release" | awk '{print $1}' | head -1 || true)
-          if [ -n "$EXISTING_DRAFT" ]; then
-            echo "Deleting existing draft: $EXISTING_DRAFT"
-            gh release delete "$EXISTING_DRAFT" --yes --cleanup-tag || true
+          # Delete existing pre-release if it exists
+          EXISTING_PRERELEASE=$(gh release list --limit 20 | grep -E "\tPre-release\t" | awk '{print $1}' | head -1 || true)
+          if [ -n "$EXISTING_PRERELEASE" ]; then
+            echo "Deleting existing pre-release: $EXISTING_PRERELEASE"
+            gh release delete "$EXISTING_PRERELEASE" --yes --cleanup-tag || true
           fi
 
-          # Create new draft pre-release with categorized notes
-          echo "Creating draft pre-release: $TAG"
+          # Create new pre-release with categorized notes
+          echo "Creating pre-release: $TAG"
           gh release create "$TAG" \
-            --draft \
             --prerelease \
             --notes-file release-notes.md \
             --target main \
