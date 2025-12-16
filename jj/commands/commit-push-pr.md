@@ -171,9 +171,9 @@ For each PR in a stack (more than one PR):
    ---
 
    **Stack:**
-   - #123 - Feature setup ← base
-   - #124 - Core implementation ← **this PR**
-   - #125 - Tests and documentation
+   - #123
+   - #124 ← **this PR**
+   - #125
    ```
 
 4. Update the PR:
