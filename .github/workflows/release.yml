@@ -1,0 +1,84 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Promote Prerelease to Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get prerelease version
+        id: version
+        run: |
+          # Get the latest prerelease tag
+          PRERELEASE_TAG=$(git tag -l 'v*-pre' --sort=-v:refname | head -n1 || echo "")
+          if [ -z "$PRERELEASE_TAG" ]; then
+            echo "No prerelease found to promote"
+            exit 1
+          fi
+          echo "Prerelease tag: $PRERELEASE_TAG"
+
+          # Convert prerelease to release version (remove -pre suffix)
+          RELEASE_VERSION="${PRERELEASE_TAG%-pre}"
+          echo "prerelease_tag=$PRERELEASE_TAG" >> $GITHUB_OUTPUT
+          echo "release_version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $RELEASE_VERSION"
+
+      - name: Update marketplace.json version
+        run: |
+          VERSION="${{ steps.version.outputs.release_version }}"
+          VERSION_NO_V="${VERSION#v}"
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION_NO_V\"/" .claude-plugin/marketplace.json
+
+      - name: Commit version updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude-plugin/marketplace.json
+          git commit -m "chore: release ${{ steps.version.outputs.release_version }}"
+          git push
+
+      - name: Delete prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "${{ steps.version.outputs.prerelease_tag }}" --yes
+          git push --delete origin "${{ steps.version.outputs.prerelease_tag }}"
+
+      - name: Generate release notes
+        run: |
+          # Get the previous release tag (non-prerelease)
+          PREV_TAG=$(git tag -l 'v*' --sort=-v:refname | grep -v '\-pre' | head -n1 || echo "")
+
+          if [ -n "$PREV_TAG" ]; then
+            echo "Generating changelog from $PREV_TAG to HEAD"
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges | grep -v "^- chore: bump version" | grep -v "^- chore: release" > /tmp/changelog.txt || echo "No changes" > /tmp/changelog.txt
+          else
+            echo "No previous tag found, listing recent commits"
+            git log --pretty=format:"- %s" -20 --no-merges | grep -v "^- chore: bump version" | grep -v "^- chore: release" > /tmp/changelog.txt || echo "Initial release" > /tmp/changelog.txt
+          fi
+
+          # Ensure file is not empty
+          if [ ! -s /tmp/changelog.txt ]; then
+            echo "Release ${{ steps.version.outputs.release_version }}" > /tmp/changelog.txt
+          fi
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.release_version }}" \
+            --title "Release ${{ steps.version.outputs.release_version }}" \
+            --notes-file /tmp/changelog.txt \
+            --target main
