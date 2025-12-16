@@ -290,13 +290,13 @@ After structure approval:
    - Missing edge cases or considerations?
    ```
 
-2. **Iterate based on feedback** - be ready to:
+3. **Iterate based on feedback** - be ready to:
    - Add missing phases
    - Adjust technical approach
    - Clarify success criteria (both automated and manual)
    - Add/remove scope items
 
-3. **Continue refining** until the user is satisfied
+4. **Continue refining** until the user is satisfied
 
 ## Important Guidelines
 

@@ -147,7 +147,7 @@ Get user confirmation before proceeding.
    Would you like any further adjustments?
    ```
 
-2. **Be ready to iterate further** based on feedback
+3. **Be ready to iterate further** based on feedback
 
 ## Important Guidelines
 

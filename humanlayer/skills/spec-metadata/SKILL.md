@@ -1,90 +1,85 @@
 ---
 name: spec-metadata
-description: Gathers metadata for documentation including timestamps, git info, and repository details. Activate when creating research docs, plans, or handoffs that need metadata frontmatter.
-allowed-tools:
-  - Bash
+description: Generates metadata for research documents and specifications including date/time, git commit, branch, and repository info. Use when creating research documents, handoffs, or any documentation that needs timestamp and git metadata.
+allowed-tools: Bash
 ---
 
-# Spec Metadata Skill
+# Spec Metadata Generator
 
-This skill provides instructions for gathering metadata to include in documentation frontmatter (research documents, implementation plans, handoffs, etc.).
+This skill generates metadata for documentation files including research documents, handoffs, and specifications.
 
-## Metadata to Gather
+## When to Activate
 
-Use the Bash tool to gather the following metadata:
+Activate this skill when:
+- Creating research documents in `thoughts/shared/research/`
+- Creating handoff documents in `thoughts/shared/handoffs/`
+- Creating implementation plans
+- Any documentation that needs timestamp and git metadata
 
-### 1. Current Date/Time with Timezone
+## Process
+
+### 1. Collect Metadata
+
+Run the following commands to gather all necessary metadata:
+
+**For git users:**
 ```bash
-date -u +"%Y-%m-%dT%H:%M:%SZ"
+# Current date/time with timezone
+date '+%Y-%m-%d %H:%M:%S %Z'
+
+# Timestamp for filename
+date '+%Y-%m-%d_%H-%M-%S'
+
+# Git information
+git rev-parse --show-toplevel  # Repo root
+basename "$(git rev-parse --show-toplevel)"  # Repo name
+git branch --show-current  # Current branch
+git rev-parse HEAD  # Current commit hash
 ```
 
-### 2. Timestamp for Filename
+**For jj users:**
 ```bash
-date +"%Y-%m-%d_%H-%M-%S"
+# Current date/time with timezone
+date '+%Y-%m-%d %H:%M:%S %Z'
+
+# Timestamp for filename
+date '+%Y-%m-%d_%H-%M-%S'
+
+# Jujutsu information
+jj workspace root  # Repo root (or use pwd if in repo)
+basename "$(pwd)"  # Repo name
+jj log -r @ --no-graph -T 'bookmarks'  # Current bookmark(s)
+jj log -r @ --no-graph -T 'commit_id.short()'  # Current commit hash
 ```
 
-### 3. Simple Date (YYYY-MM-DD)
-```bash
-date +"%Y-%m-%d"
+### 2. Output Format
+
+Present the metadata to the user in this format:
+
+```
+Current Date/Time (TZ): [date with timezone]
+Current Git Commit Hash: [commit hash]
+Current Branch Name: [branch name]
+Repository Name: [repo name]
+Timestamp For Filename: [filename timestamp]
 ```
 
-### 4. Git/JJ Information (if in repository)
+### 3. Usage in Documents
 
-**For Git users:**
-```bash
-# Get commit hash
-git rev-parse HEAD
-
-# Get current branch name
-git branch --show-current
-
-# Get repository name (from remote URL)
-git remote get-url origin | sed 's/.*\///' | sed 's/\.git$//'
-
-# Alternative for repository owner/name
-gh repo view --json owner,name -q '.owner.login + "/" + .name' 2>/dev/null || git remote get-url origin | sed 's/.*[:/]//' | sed 's/\.git$//'
-```
-
-**For Jujutsu (jj) users:**
-```bash
-# Get commit hash
-jj log -r @ --no-graph -T 'commit_id'
-
-# List bookmarks/branches
-jj bookmark list
-
-# Get repository name
-jj config list --repo | grep -E 'remote.*url' | sed 's/.*\///' | sed 's/\.git$//' | head -n1
-```
-
-## Usage Instructions
-
-When you need to gather metadata for a document:
-
-1. Invoke this skill using the Skill tool
-2. Run the appropriate bash commands above based on your needs
-3. Use the gathered metadata to populate the YAML frontmatter in your document
-
-## Example Frontmatter Template
+This metadata should be used in YAML frontmatter:
 
 ```yaml
 ---
-date: [ISO timestamp from step 1]
-researcher: [Researcher name - get from user context or existing docs]
-git_commit: [Commit hash from step 4]
-branch: [Branch name from step 4]
-repository: [Repository name from step 4]
-topic: "[Document topic]"
-tags: [relevant, tags, here]
-status: complete
-last_updated: [Simple date from step 3]
-last_updated_by: [Researcher name]
+date: [Current date and time with timezone in ISO format]
+git_commit: [Current commit hash]
+branch: [Current branch name]
+repository: [Repository name]
+last_updated: [Current date in YYYY-MM-DD format]
 ---
 ```
 
 ## Notes
 
-- Not all metadata may be available in every environment (e.g., git info in non-git repos)
-- Handle errors gracefully - if git/jj commands fail, proceed without that metadata
-- The timestamp format for filenames uses underscores and hyphens for filesystem compatibility
-- ISO timestamps should use UTC timezone (Z suffix) for consistency
+- The filename timestamp format uses underscores and 24-hour time (e.g., `2025-01-08_13-55-22`)
+- Always include timezone information in the date field
+- For jj users, if multiple bookmarks exist, use the most relevant one or all if applicable

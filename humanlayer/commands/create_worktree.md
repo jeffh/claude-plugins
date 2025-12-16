@@ -1,10 +1,9 @@
-
 ---
 description: Create worktree and launch implementation session for a plan
 ---
 
 2. set up worktree for implementation:
-2a. read `hack/create_worktree.sh` and create a new worktree with the Linear branch name: `./hack/create_worktree.sh ENG-XXXX BRANCH_NAME`
+2a. Use the Skill tool to create a worktree: invoke the "create-worktree" skill with the Linear ticket number and branch name
 
 3. determine required data:
 
@@ -14,10 +13,10 @@ launch prompt
 command to run
 
 **IMPORTANT PATH USAGE:**
-- The thoughts/ directory is accessible from worktrees
+- The thoughts/ directory is synced between the main repo and worktrees
 - Always use ONLY the relative path starting with `thoughts/shared/...` without any directory prefix
 - Example: `thoughts/shared/plans/fix-mcp-keepalive-proper.md` (not the full absolute path)
-- This works because thoughts are accessible from the worktree
+- This works because thoughts are synced and accessible from the worktree
 
 3a. confirm with the user by sending a message to the Human
 

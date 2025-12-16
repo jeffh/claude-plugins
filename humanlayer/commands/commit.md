@@ -11,12 +11,9 @@ You are tasked with creating git commits for the changes made during this sessio
 1. **Think about what changed:**
    - Review the conversation history and understand what was accomplished
    - Check current changes:
-     - For git users: `git status`
-     - For jj users: `jj status`
-   - View modifications:
-     - For git users: `git diff`
-     - For jj users: `jj diff`
-   - Consider whether changes should be one commit or multiple logical commits
+     - For git users: `git status` and `git diff`
+     - For jj users: `jj status` and `jj diff`
+   - Consider whether changes should be one commit/change or multiple logical commits/changes
 
 2. **Plan your commit(s):**
    - Identify which files belong together
@@ -25,17 +22,22 @@ You are tasked with creating git commits for the changes made during this sessio
    - Focus on why the changes were made, not just what
 
 3. **Present your plan to the user:**
-   - List the files you plan to add for each commit
+   - List the files you plan to include for each commit/change
    - Show the commit message(s) you'll use
    - Ask: "I plan to create [N] commit(s) with these changes. Shall I proceed?"
 
 4. **Execute upon confirmation:**
-   - Stage and commit changes:
-     - For git users: Use `git add` with specific files (never use `-A` or `.`), then `git commit -m "message"`
-     - For jj users: Use `jj describe -m "message"` (jj auto-tracks changes, no staging needed)
-   - Show the result:
-     - For git users: `git log --oneline -n [number]`
-     - For jj users: `jj log -n [number]`
+
+   For git users:
+   - Use `git add` with specific files (never use `-A` or `.`)
+   - Create commits with your planned messages: `git commit -m "message"`
+   - Show the result with `git log --oneline -n [number]`
+
+   For jj users:
+   - Changes are automatically tracked, no need to stage
+   - Update the change description: `jj describe -m "message"`
+   - If multiple changes needed, create new changes: `jj new` for each
+   - Show the result with `jj log -r 'ancestors(@, [number])'`
 
 ## Important:
 - **NEVER add co-author information or Claude attribution**

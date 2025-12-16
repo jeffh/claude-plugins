@@ -19,15 +19,20 @@ When invoked with a parameter like `gh_username:branchName`:
    - Use this to create a short worktree directory name
    - If no ticket found, use a sanitized version of the branch name
 
-3. **Set up the remote and worktree**:
-   - For git users:
-     - Check if the remote already exists using `git remote -v`
-     - If not, add it: `git remote add USERNAME git@github.com:USERNAME/humanlayer`
-     - Fetch from the remote: `git fetch USERNAME`
-     - Create worktree: `git worktree add -b BRANCHNAME ~/wt/humanlayer/SHORT_NAME USERNAME/BRANCHNAME`
-   - For jj users:
-     - Fetch from the remote: `jj git fetch --remote USERNAME` (after adding git remote)
-     - Note: jj doesn't have worktrees; recommend using separate clone or regular git workflow for this command
+3. **Set up the remote and fetch branch**:
+
+   For git users:
+   - Check if the remote already exists using `git remote -v`
+   - If not, add it: `git remote add USERNAME git@github.com:USERNAME/humanlayer`
+   - Fetch from the remote: `git fetch USERNAME`
+   - Create worktree: `git worktree add -b BRANCHNAME ~/wt/humanlayer/SHORT_NAME USERNAME/BRANCHNAME`
+
+   For jj users:
+   - Check if the remote already exists using `jj git remote list`
+   - If not, add it: `jj git remote add USERNAME git@github.com:USERNAME/humanlayer`
+   - Fetch from the remote: `jj git fetch --remote USERNAME`
+   - Create workspace: `jj workspace add --name SHORT_NAME ~/wt/humanlayer/SHORT_NAME`
+   - Switch to the branch: `cd ~/wt/humanlayer/SHORT_NAME && jj new USERNAME@BRANCHNAME`
 
 4. **Configure the worktree**:
    - Copy Claude settings: `cp .claude/settings.local.json WORKTREE/.claude/`

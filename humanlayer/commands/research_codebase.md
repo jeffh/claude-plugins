@@ -83,7 +83,7 @@ Then wait for the user's research query.
    - Answer the user's specific questions with concrete evidence
 
 5. **Gather metadata for the research document:**
-   - Invoke the **spec-metadata** skill using the Skill tool to gather all relevant metadata
+   - Use the Skill tool to gather metadata: invoke the "spec-metadata" skill
    - Filename: `thoughts/shared/research/YYYY-MM-DD-ENG-XXXX-description.md`
      - Format: `YYYY-MM-DD-ENG-XXXX-description.md` where:
        - YYYY-MM-DD is today's date
@@ -157,9 +157,12 @@ Then wait for the user's research query.
 7. **Add GitHub permalinks (if applicable):**
    - Check if on main branch or if commit is pushed:
      - For git users: `git branch --show-current` and `git status`
-     - For jj users: `jj bookmark list` and `jj log -r @` (to see if pushed)
+     - For jj users: `jj log -r @ --no-graph -T 'bookmarks'` and `jj status`
    - If on main/master or pushed, generate GitHub permalinks:
      - Get repo info: `gh repo view --json owner,name`
+     - Get commit hash:
+       - For git users: Use current HEAD commit
+       - For jj users: `jj log -r @ --no-graph -T 'commit_id'`
      - Create permalinks: `https://github.com/{owner}/{repo}/blob/{commit}/{file}#L{line}`
    - Replace local file references with permalinks in the document
 

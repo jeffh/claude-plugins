@@ -46,9 +46,11 @@ You have access to these key locations and tools:
 - SQLite database with sessions, events, approvals, etc.
 - Can query directly with `sqlite3`
 
-**Git State**:
+**Version Control State**:
 - Check current branch, recent commits, uncommitted changes
 - Similar to how `commit` and `describe_pr` commands work
+- For git users: Use `git status`, `git log`, `git diff`
+- For jj users: Use `jj status`, `jj log`, `jj diff`
 
 **Service Status**:
 - Check if daemon is running: `ps aux | grep hld`
@@ -67,10 +69,12 @@ After the user describes the issue:
    - Identify expected vs actual behavior
 
 2. **Quick state check**:
-   - Current branch:
-     - For git users: `git branch --show-current`
-     - For jj users: `jj bookmark list` (shows current bookmark)
-   - Recent commits and uncommitted changes
+   - Current branch and recent commits:
+     - For git users: `git branch --show-current` and `git log --oneline -5`
+     - For jj users: `jj log -r @ --no-graph -T 'bookmarks'` and `jj log -r 'ancestors(@, 5)'`
+   - Any uncommitted changes:
+     - For git users: `git status` and `git diff`
+     - For jj users: `jj status` and `jj diff`
    - When the issue started occurring
 
 ### Step 2: Investigate the Issue
@@ -105,16 +109,16 @@ Return: Relevant database findings
 Task 3 - Version Control and File State:
 Understand what changed recently:
 For git users:
-1. Check status and branch: git status, git branch --show-current
+1. Check git status and current branch
 2. Look at recent commits: git log --oneline -10
 3. Check uncommitted changes: git diff
 
 For jj users:
-1. Check status: jj status
-2. Look at recent commits: jj log -n 10
+1. Check jj status and current bookmarks
+2. Look at recent changes: jj log -r 'ancestors(@, 10)'
 3. Check uncommitted changes: jj diff
 
-Then:
+For both:
 4. Verify expected files exist
 5. Look for any file permission issues
 Return: Version control state and any file issues
@@ -142,7 +146,7 @@ Based on the investigation, present a focused debug report:
 [Finding from database]
 ```
 
-**From Git/Files**:
+**From Version Control/Files**:
 - [Recent changes that might be related]
 - [File state issues]
 
@@ -201,15 +205,18 @@ ps aux | grep wui     # Is WUI running?
 ```
 
 **Version Control State**:
+
+For git users:
 ```bash
-# For git users:
 git status
 git log --oneline -10
 git diff
+```
 
-# For jj users:
+For jj users:
+```bash
 jj status
-jj log -n 10
+jj log -r 'ancestors(@, 10)' --no-graph -T 'change_id.short() ++ " " ++ description.first_line() ++ "\n"'
 jj diff
 ```
 

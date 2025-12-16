@@ -127,13 +127,16 @@ Then wait for the user's research query.
 7. **Add GitHub permalinks (if applicable):**
    - Check if on main branch or if commit is pushed:
      - For git users: `git branch --show-current` and `git status`
-     - For jj users: `jj bookmark list` and `jj log -r @` (to see if pushed)
+     - For jj users: `jj log -r @ --no-graph -T 'bookmarks'` and `jj status`
    - If on main/master or pushed, generate GitHub permalinks:
      - Get repo info: `gh repo view --json owner,name`
+     - Get commit hash:
+       - For git users: Use current HEAD commit
+       - For jj users: `jj log -r @ --no-graph -T 'commit_id'`
      - Create permalinks: `https://github.com/{owner}/{repo}/blob/{commit}/{file}#L{line}`
    - Replace local file references with permalinks in the document
 
-8. **Sync and present findings:**
+8. **Present findings:**
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
    - Ask if they have follow-up questions or need clarification
@@ -144,7 +147,7 @@ Then wait for the user's research query.
    - Add `last_updated_note: "Added follow-up research for [brief description]"` to frontmatter
    - Add a new section: `## Follow-up Research [timestamp]`
    - Spawn new sub-agents as needed for additional investigation
-   - Continue updating the document and syncing
+   - Continue updating the document
 
 ## Important notes:
 - Always use parallel Task agents to maximize efficiency and minimize context usage
