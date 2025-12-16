@@ -1,10 +1,9 @@
-
 ---
 description: Create worktree and launch implementation session for a plan
 ---
 
 2. set up worktree for implementation:
-2a. Use the Task tool to invoke the `worktree-creator` agent to create a new worktree with the Linear branch name (ENG-XXXX) and branch name (BRANCH_NAME)
+2a. Use the Skill tool to create a worktree: invoke the "create-worktree" skill with the Linear ticket number and branch name
 
 3. determine required data:
 

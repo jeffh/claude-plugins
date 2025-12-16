@@ -1,19 +1,19 @@
 ---
-description: Create commits with user approval and no Claude attribution (supports both git and jj)
+description: Create git commits with user approval and no Claude attribution
 ---
 
 # Commit Changes
 
-You are tasked with creating commits for the changes made during this session. This command supports both Git and Jujutsu (jj) version control systems.
+You are tasked with creating git commits for the changes made during this session.
 
 ## Process:
 
 1. **Think about what changed:**
    - Review the conversation history and understand what was accomplished
    - Check current changes:
-     - **For git users**: Run `git status` and `git diff`
-     - **For jj users**: Run `jj status` and `jj diff`
-   - Consider whether changes should be one commit or multiple logical commits
+     - For git users: `git status` and `git diff`
+     - For jj users: `jj status` and `jj diff`
+   - Consider whether changes should be one commit/change or multiple logical commits/changes
 
 2. **Plan your commit(s):**
    - Identify which files belong together
@@ -22,20 +22,22 @@ You are tasked with creating commits for the changes made during this session. T
    - Focus on why the changes were made, not just what
 
 3. **Present your plan to the user:**
-   - List the files you plan to include for each commit
+   - List the files you plan to include for each commit/change
    - Show the commit message(s) you'll use
    - Ask: "I plan to create [N] commit(s) with these changes. Shall I proceed?"
 
 4. **Execute upon confirmation:**
-   - **For git users**:
-     - Use `git add` with specific files (never use `-A` or `.`)
-     - Create commits with your planned messages: `git commit -m "message"`
-     - Show the result with `git log --oneline -n [number]`
 
-   - **For jj users**:
-     - Create a new change: `jj new`
-     - Describe the change with your message: `jj describe -m "message"`
-     - Show the result with `jj log -n [number]`
+   For git users:
+   - Use `git add` with specific files (never use `-A` or `.`)
+   - Create commits with your planned messages: `git commit -m "message"`
+   - Show the result with `git log --oneline -n [number]`
+
+   For jj users:
+   - Changes are automatically tracked, no need to stage
+   - Update the change description: `jj describe -m "message"`
+   - If multiple changes needed, create new changes: `jj new` for each
+   - Show the result with `jj log -r 'ancestors(@, [number])'`
 
 ## Important:
 - **NEVER add co-author information or Claude attribution**

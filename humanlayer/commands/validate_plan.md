@@ -18,6 +18,8 @@ When invoked:
    - Otherwise, search recent commits for plan references or ask user
 
 3. **Gather implementation evidence**:
+
+   For git users:
    ```bash
    # Check recent commits
    git log --oneline -n 20
@@ -25,6 +27,16 @@ When invoked:
 
    # Run comprehensive checks
    cd $(git rev-parse --show-toplevel) && make check test
+   ```
+
+   For jj users:
+   ```bash
+   # Check recent commits
+   jj log -r 'ancestors(@, 20)' --no-graph -T 'commit_id.short() ++ " " ++ description.first_line() ++ "\n"'
+   jj diff -r @~N  # Where N covers implementation changes
+
+   # Run comprehensive checks
+   cd $(jj workspace root) && make check test
    ```
 
 ## Validation Process

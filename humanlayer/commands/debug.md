@@ -46,9 +46,11 @@ You have access to these key locations and tools:
 - SQLite database with sessions, events, approvals, etc.
 - Can query directly with `sqlite3`
 
-**Git State**:
+**Version Control State**:
 - Check current branch, recent commits, uncommitted changes
 - Similar to how `commit` and `describe_pr` commands work
+- For git users: Use `git status`, `git log`, `git diff`
+- For jj users: Use `jj status`, `jj log`, `jj diff`
 
 **Service Status**:
 - Check if daemon is running: `ps aux | grep hld`
@@ -67,8 +69,12 @@ After the user describes the issue:
    - Identify expected vs actual behavior
 
 2. **Quick state check**:
-   - Current git branch and recent commits
-   - Any uncommitted changes
+   - Current branch and recent commits:
+     - For git users: `git branch --show-current` and `git log --oneline -5`
+     - For jj users: `jj log -r @ --no-graph -T 'bookmarks'` and `jj log -r 'ancestors(@, 5)'`
+   - Any uncommitted changes:
+     - For git users: `git status` and `git diff`
+     - For jj users: `jj status` and `jj diff`
    - When the issue started occurring
 
 ### Step 2: Investigate the Issue
@@ -100,14 +106,22 @@ Return: Relevant database findings
 ```
 
 ```
-Task 3 - Git and File State:
+Task 3 - Version Control and File State:
 Understand what changed recently:
+For git users:
 1. Check git status and current branch
 2. Look at recent commits: git log --oneline -10
 3. Check uncommitted changes: git diff
+
+For jj users:
+1. Check jj status and current bookmarks
+2. Look at recent changes: jj log -r 'ancestors(@, 10)'
+3. Check uncommitted changes: jj diff
+
+For both:
 4. Verify expected files exist
 5. Look for any file permission issues
-Return: Git state and any file issues
+Return: Version control state and any file issues
 ```
 
 ### Step 3: Present Findings
@@ -132,7 +146,7 @@ Based on the investigation, present a focused debug report:
 [Finding from database]
 ```
 
-**From Git/Files**:
+**From Version Control/Files**:
 - [Recent changes that might be related]
 - [File state issues]
 
@@ -190,11 +204,20 @@ ps aux | grep hld     # Is daemon running?
 ps aux | grep wui     # Is WUI running?
 ```
 
-**Git State**:
+**Version Control State**:
+
+For git users:
 ```bash
 git status
 git log --oneline -10
 git diff
+```
+
+For jj users:
+```bash
+jj status
+jj log -r 'ancestors(@, 10)' --no-graph -T 'change_id.short() ++ " " ++ description.first_line() ++ "\n"'
+jj diff
 ```
 
 Remember: This command helps you investigate without burning the primary window's context. Perfect for when you hit an issue during manual testing and need to dig into logs, database, or git state.

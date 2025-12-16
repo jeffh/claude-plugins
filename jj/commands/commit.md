@@ -19,7 +19,7 @@ You are tasked with creating jj commits for the changes made during this session
 3. **Present your plan to the user:**
    - List the files you plan to include for each commit
    - Show the commit message(s) you'll use
-   - Ask the user: "I plan to create [N] commit(s) with these changes. Shall I proceed?" (yes/no)
+   - Ask: "I plan to create [N] commit(s) with these changes. Shall I proceed?"
 
 4. **Execute upon confirmation:**
    - Use `jj describe` to set the commit message for the current working copy
@@ -36,7 +36,7 @@ You are tasked with creating jj commits for the changes made during this session
 ## Jujutsu-specific notes:
 - Jujutsu automatically tracks all changes in the working copy
 - Use `jj describe` to set the commit message
-- Use `jj split` with `-m "message"` flag to split changes into multiple commits (NEVER run without -m as it opens interactive mode)
+- Use `jj split` to split changes into multiple commits if needed
 - Use `jj squash` to combine commits if necessary
 - The working copy revision is automatically updated
 

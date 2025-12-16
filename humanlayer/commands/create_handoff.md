@@ -16,10 +16,7 @@ Use the following information to understand how to create your document:
         - ENG-XXXX is the ticket number (replace with `general` if no ticket)
         - ENG-ZZZZ is the ticket number (omit if no ticket)
         - description is a brief kebab-case description
-    - Use the Task tool to invoke the `metadata-gatherer` agent to generate all relevant metadata:
-        ```
-        Task tool with subagent_type: metadata-gatherer
-        ```
+    - Use the Skill tool to gather metadata: invoke the "spec-metadata" skill
     - Examples:
         - With ticket: `2025-01-08_13-55-22_ENG-2166_create-context-compaction.md`
         - Without ticket: `2025-01-08_13-55-22_create-context-compaction.md`
@@ -68,9 +65,8 @@ type: implementation_strategy
 ```
 ---
 
-### 3. Final Response
-
-Once the handoff document is created, you should respond to the user with the template between <template_response></template_response> XML tags. do NOT include the tags in your response.
+### 3. Approve and Complete
+Once this is completed, you should respond to the user with the template between <template_response></template_response> XML tags. do NOT include the tags in your response.
 
 <template_response>
 Handoff created! You can resume from this handoff in a new session with the following command:
