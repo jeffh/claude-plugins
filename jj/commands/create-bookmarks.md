@@ -1,6 +1,7 @@
 ---
 description: Create bookmarks for commits in the current jj stack
 model: claude-haiku-4-5
+tools: Bash(jj log:*), Bash(jj bookmark create:*), Bash(jj bookmark list:*), Bash(jj git push:*), Bash(gh api:*), SlashCommand
 ---
 
 # Create Bookmarks
