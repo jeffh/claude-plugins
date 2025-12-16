@@ -1,7 +1,9 @@
-name: Release
+name: Prerelease
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -9,8 +11,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  release:
-    name: Release
+  prerelease:
+    name: Prerelease
     runs-on: ubuntu-latest
 
     steps:
@@ -31,7 +33,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Release
+      - name: Prerelease
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release --extends ./.releaserc.release.json
+        run: npm run semantic-release
