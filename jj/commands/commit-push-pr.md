@@ -1,6 +1,6 @@
 ---
 description: Commit, create bookmarks, push, and create PRs in one workflow
-model: claude-haiku-4-5
+model: claude-sonnet-4-5
 ---
 
 # Commit, Push, and Create PRs
@@ -16,9 +16,12 @@ This command orchestrates three separate operations in sequence:
 
 ### Phase 1: Assess Current State
 
-Gather initial information to determine what needs to be done:
+Gather all information upfront:
 
 ```bash
+# Get GitHub username for bookmark prefix
+gh api user -q '.login'
+
 # View current working copy status
 jj status --no-pager
 
@@ -27,16 +30,21 @@ jj log --no-pager -r 'trunk()..@'
 
 # List commits with descriptions and bookmarks
 jj log -r 'trunk()..@' --no-graph -T 'separate(" | ", change_id.short(), if(description, description.first_line(), "(no description)"), bookmarks) ++ "\n"'
+
+# Check for existing PRs
+gh pr list --json number,title,headRefName,url,baseRefName --state open
 ```
 
 Identify:
-- Whether there are uncommitted changes that need descriptions
+- How many commits are in the stack
+- Which commits need descriptions
 - Which commits already have bookmarks
-- Which bookmarks might already have PRs
+- Which bookmarks already have PRs
+- The GitHub username for bookmark prefix
 
-### Phase 2: Plan and Confirm
+### Phase 2: Ask All Questions Upfront
 
-Present a summary:
+Present the current state and ask ALL configuration questions before executing anything:
 
 ```
 Current state:
@@ -44,36 +52,44 @@ Current state:
 - [X] commits need descriptions
 - [Y] commits need bookmarks
 - [Z] PRs to create/update
-
-Workflow:
-1. Add descriptions to commits (if needed)
-2. Create bookmarks (if needed)
-3. Push and create PRs
-
-Proceed?
 ```
 
-Wait for user confirmation before proceeding.
+**Ask these questions (as applicable):**
+
+1. **Bookmark prefix:** (default: `<github-username>/`)
+
+2. **PR configuration:** (only if creating new PRs)
+   - Stacked vs independent PRs
+   - Draft vs published
+
+3. **Proceed with workflow?**
+
+Wait for user to answer all questions before proceeding.
 
 ### Phase 3: Execute Workflow
 
-Execute each phase in sequence, invoking the appropriate slash command:
+Execute each phase in sequence. Do NOT ask for additional confirmation during execution.
 
 **Step 1: Commit (if commits need descriptions)**
 
-Invoke `/jj:commit` with the appropriate revset for commits that need descriptions.
-
-Wait for commit phase to complete before proceeding.
+Invoke `/jj:commit` with the appropriate revset. The commit command should execute without asking for confirmation since the user already approved the workflow.
 
 **Step 2: Create Bookmarks (if commits need bookmarks)**
 
-Invoke `/jj:create-bookmarks` to create bookmarks for the stack.
+Create bookmarks using the prefix confirmed in Phase 2. Do not ask additional questions.
 
-Wait for bookmark creation to complete before proceeding.
+```bash
+jj bookmark create <prefix><name> -r <change_id>
+```
 
-**Step 3: Create PRs**
+**Step 3: Push and Create PRs**
 
-Invoke `/jj:create-prs` to push branches and create pull requests.
+Push and create PRs using the configuration confirmed in Phase 2.
+
+```bash
+jj git push --allow-new
+gh pr create --head <bookmark> --base <base> --title "<title>" --body "<body>"
+```
 
 ### Phase 4: Summary
 
@@ -93,7 +109,7 @@ All changes are now in open pull requests.
 
 - **Skip commit phase** if all commits already have descriptions
 - **Skip bookmark phase** if all commits already have bookmarks
-- **Skip PR phase** if user declines to create PRs
+- **Skip PR phase** if no bookmarks need PRs
 
 ## Important Rules
 
