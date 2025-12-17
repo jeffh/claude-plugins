@@ -81,6 +81,7 @@ For each bookmark (in order from closest to main to furthest):
 3. Generate PR body:
    - Use the full commit description as the starting point
    - Add context about what changed and why
+   - **Do NOT include a "Test plan" section**
    - **Do NOT include Claude attribution or co-author info**
 4. Determine base branch:
    - Stacked mode: Use parent bookmark, or main if first in stack
@@ -146,6 +147,7 @@ Include:
 ## Important:
 
 - **NEVER add co-author information or Claude attribution**
+- **Do NOT include a "Test plan" section in PR descriptions**
 - PRs should be authored solely by the user
 - Do not include any "Generated with Claude" messages
 - Do not add "Co-Authored-By" lines
