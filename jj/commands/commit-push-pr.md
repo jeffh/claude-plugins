@@ -115,6 +115,7 @@ All changes are now in open pull requests.
 ## Important Rules
 
 - **NEVER add co-author information or Claude attribution**
+- **Do NOT include a "Test plan" section in PR descriptions**
 - Commits and PRs should be authored solely by the user
 - Each phase should complete fully before proceeding to the next
 - If any phase fails, report the error and ask how to proceed
