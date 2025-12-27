@@ -9,7 +9,7 @@ description: Create compelling story-format summaries using UltraThink to find t
 
 **Before starting any task with this skill, load complete PAI context:**
 
-`read ${PAI_DIR}/Skills/CORE/SKILL.md`
+`read ${CLAUDE_PLUGIN_ROOT}/skills/CORE/SKILL.md`
 
 ## Core Philosophy
 
@@ -133,7 +133,7 @@ User request → Analyze intent:
 
 ## 📁 Scratchpad → History Pattern
 
-**Working Directory:** `${PAI_DIR}/scratchpad/YYYY-MM-DD-HHMMSS_story-explanation-[topic]/`
+**Working Directory:** `${CLAUDE_PLUGIN_ROOT}/scratchpad/YYYY-MM-DD-HHMMSS_story-explanation-[topic]/`
 
 **Process:**
 1. **Scratchpad (Working Files):**
@@ -142,10 +142,10 @@ User request → Analyze intent:
    - Keep UltraThink analysis notes
    - Save multiple framing explorations (5+ options from deep analysis)
    - Draft iterations and refinements
-   - Example: `${PAI_DIR}/scratchpad/2025-10-26-143000_story-explanation-agi-timeline/`
+   - Example: `${CLAUDE_PLUGIN_ROOT}/scratchpad/2025-10-26-143000_story-explanation-agi-timeline/`
 
 2. **History (Permanent Archive - Optional):**
-   - Move to `${PAI_DIR}/History/research/YYYY-MM/YYYY-MM-DD-HHMMSS_AGENT-[agent]_RESEARCH_[slug].md` **ONLY IF:**
+   - Move to `${CLAUDE_PLUGIN_ROOT}/History/research/YYYY-MM/YYYY-MM-DD-HHMMSS_AGENT-[agent]_RESEARCH_[slug].md` **ONLY IF:**
      - The analysis provides valuable reusable insights about narrative framing
      - The content analysis reveals patterns applicable to future work
      - The framing exploration demonstrates particularly effective techniques
@@ -160,7 +160,7 @@ User request → Analyze intent:
 
 **File Structure Example:**
 ```
-${PAI_DIR}/scratchpad/2025-10-26-143000_story-explanation-agi-timeline/
+${CLAUDE_PLUGIN_ROOT}/scratchpad/2025-10-26-143000_story-explanation-agi-timeline/
 ├── raw-content.txt                    # Extracted article/transcript
 ├── ultrathink-analysis.md             # Deep narrative analysis notes
 ├── framing-explorations.md            # 5+ different narrative framings explored
@@ -169,7 +169,7 @@ ${PAI_DIR}/scratchpad/2025-10-26-143000_story-explanation-agi-timeline/
 └── final-story-explanation.md         # Final output
 
 # Only if exceptional:
-${PAI_DIR}/History/research/2025-10/2025-10-26-143000_AGENT-default_RESEARCH_agi-timeline-narrative-framing-analysis.md
+${CLAUDE_PLUGIN_ROOT}/History/research/2025-10/2025-10-26-143000_AGENT-default_RESEARCH_agi-timeline-narrative-framing-analysis.md
 ```
 
 **Guidelines:**
@@ -371,7 +371,7 @@ Use the selected framing to create the story explanation in the appropriate form
 When this skill activates, Kai should:
 
 1. **Determine format** - Based on user request, select appropriate workflow
-2. **Create scratchpad directory** - `${PAI_DIR}/scratchpad/YYYY-MM-DD-HHMMSS_story-explanation-[topic]/`
+2. **Create scratchpad directory** - `${CLAUDE_PLUGIN_ROOT}/scratchpad/YYYY-MM-DD-HHMMSS_story-explanation-[topic]/`
 3. **Load be-creative skill** - Activate research-backed creativity framework
 4. **Load content** via appropriate method (fabric -y, WebFetch, Read, or paste)
 5. **Save raw content to scratchpad** - Store extracted content for reference

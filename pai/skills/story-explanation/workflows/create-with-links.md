@@ -196,7 +196,7 @@ Present the final story explanation in this format:
 ## STEP 7: Save Output (Optional)
 
 If the story explanation is valuable for future reference:
-- Save to: `${PAI_DIR}/History/research/YYYY-MM/YYYY-MM-DD_story-explanation-[topic].md`
+- Save to: `${CLAUDE_PLUGIN_ROOT}/History/research/YYYY-MM/YYYY-MM-DD_story-explanation-[topic].md`
 - Include: The narrative with inline links + the source content + metadata
 - Metadata: date generated, source files, length, narrative framing used
 

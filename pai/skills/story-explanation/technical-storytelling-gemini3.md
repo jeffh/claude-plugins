@@ -93,7 +93,7 @@ WebFetch(url, "Extract technical deep dive content including problem statement, 
 ## STEP 2: Create Technical Scratchpad
 
 ```bash
-mkdir -p ${PAI_DIR}/scratchpad/$(date +%Y-%m-%d-%H%M%S)_technical-storytelling-[topic]/
+mkdir -p ${CLAUDE_PLUGIN_ROOT}/scratchpad/$(date +%Y-%m-%d-%H%M%S)_technical-storytelling-[topic]/
 ```
 
 Save:
@@ -374,7 +374,7 @@ Save complete technical narrative to scratchpad:
 
 **Archive to history if valuable:**
 ```
-${PAI_DIR}/History/research/YYYY-MM/YYYY-MM-DD-HHMMSS_AGENT-default_RESEARCH_[topic]-technical-narrative.md
+${CLAUDE_PLUGIN_ROOT}/History/research/YYYY-MM/YYYY-MM-DD-HHMMSS_AGENT-default_RESEARCH_[topic]-technical-narrative.md
 ```
 
 Include:

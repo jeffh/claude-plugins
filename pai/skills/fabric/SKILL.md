@@ -7,7 +7,7 @@ description: Native Fabric pattern execution for Claude Code. USE WHEN processin
 
 ## The Key Insight
 
-**Fabric patterns are just markdown prompts.** Instead of spawning `fabric -p pattern_name` for every task, Claude Code reads and applies patterns directly from `tools/patterns/`. This gives you:
+**Fabric patterns are just markdown prompts.** Instead of spawning `fabric -p pattern_name` for every task, Claude Code reads and applies patterns directly from `${CLAUDE_PLUGIN_ROOT}/skills/fabric/tools/patterns/`. This gives you:
 
 - **Your Claude subscription's full power** - Opus/Sonnet intelligence, not Fabric's default model
 - **Full conversation context** - Patterns work with your entire session
@@ -17,24 +17,24 @@ description: Native Fabric pattern execution for Claude Code. USE WHEN processin
 ## When to Use Native Patterns (Default)
 
 For any pattern-based processing:
-1. Read `tools/patterns/{pattern_name}/system.md`
+1. Read `${CLAUDE_PLUGIN_ROOT}/skills/fabric/tools/patterns/{pattern_name}/system.md`
 2. Apply the pattern instructions directly to the content
 3. Return results without external CLI calls
 
 **Examples:**
 ```
 User: "Extract wisdom from this transcript"
-→ Read tools/patterns/extract_wisdom/system.md
+→ Read ${CLAUDE_PLUGIN_ROOT}/skills/fabric/tools/patterns/extract_wisdom/system.md
 → Apply pattern to content
 → Return structured output (IDEAS, INSIGHTS, QUOTES, etc.)
 
 User: "Create a threat model for this API"
-→ Read tools/patterns/create_threat_model/system.md
+→ Read ${CLAUDE_PLUGIN_ROOT}/skills/fabric/tools/patterns/create_threat_model/system.md
 → Apply pattern to the API description
 → Return threat model
 
 User: "Summarize this article"
-→ Read tools/patterns/summarize/system.md
+→ Read ${CLAUDE_PLUGIN_ROOT}/skills/fabric/tools/patterns/summarize/system.md
 → Apply pattern to article
 → Return summary
 ```
@@ -106,7 +106,7 @@ Run the update script to sync latest patterns from upstream:
 
 This will:
 1. Run `fabric -U` to fetch upstream updates
-2. Sync patterns to `tools/patterns/`
+2. Sync patterns to `${CLAUDE_PLUGIN_ROOT}/skills/fabric/tools/patterns/`
 
 **Requirements:** `fabric` CLI must be installed (`go install github.com/danielmiessler/fabric@latest`)
 
@@ -132,7 +132,7 @@ Each pattern directory contains:
 
 See all available patterns:
 ```bash
-ls tools/patterns/
+ls ${CLAUDE_PLUGIN_ROOT}/skills/fabric/tools/patterns/
 ```
 
-Or browse: `tools/patterns/{pattern_name}/system.md`
+Or browse: `${CLAUDE_PLUGIN_ROOT}/skills/fabric/tools/patterns/{pattern_name}/system.md`
