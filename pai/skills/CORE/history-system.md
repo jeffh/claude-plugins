@@ -201,8 +201,8 @@ Used WebSearch for initial discovery, then WebFetch for detailed documentation.
 
 ### Writing to History
 
-1. **Sessions**: Automatically captured by `session-capture.ts` hook
-2. **Raw Outputs**: Automatically captured by `tool-capture.ts` hook
+1. **Sessions**: Automatically captured by `event-capture.ts` hook
+2. **Raw Outputs**: Automatically captured by `event-capture.ts` hook
 3. **Learnings**: Manually created when discovering patterns or insights
 4. **Research**: Created by Researcher agent or during investigation tasks
 5. **Decisions**: Log when making significant architectural or implementation choices

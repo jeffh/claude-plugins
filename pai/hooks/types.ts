@@ -20,6 +20,20 @@ export const HISTORY_PATHS = {
 } as const;
 
 // ============================================================================
+// Hook Event Types
+// ============================================================================
+
+export type HookEventName =
+  | "PreToolUse"
+  | "PostToolUse"
+  | "UserPromptSubmit"
+  | "SessionStart"
+  | "SessionEnd"
+  | "Stop"
+  | "SubagentStop"
+  | "PreCompact";
+
+// ============================================================================
 // Hook Input Types
 // ============================================================================
 
@@ -28,8 +42,8 @@ export interface BaseHookInput {
   session_id: string;
   transcript_path: string;
   cwd: string;
-  permission_mode: string;
-  hook_event_name: string;
+  permission_mode?: string;
+  hook_event_name: HookEventName;
 }
 
 /** SessionStart hook input */
@@ -43,6 +57,19 @@ export interface SessionEndInput extends BaseHookInput {
   hook_event_name: "SessionEnd";
 }
 
+/** UserPromptSubmit hook input */
+export interface UserPromptSubmitInput extends BaseHookInput {
+  hook_event_name: "UserPromptSubmit";
+  prompt: string;
+}
+
+/** PreToolUse hook input */
+export interface PreToolUseInput extends BaseHookInput {
+  hook_event_name: "PreToolUse";
+  tool_name: string;
+  tool_input: Record<string, unknown>;
+}
+
 /** PostToolUse hook input */
 export interface PostToolUseInput extends BaseHookInput {
   hook_event_name: "PostToolUse";
@@ -52,6 +79,36 @@ export interface PostToolUseInput extends BaseHookInput {
   tool_output?: string;
   tool_error?: string;
 }
+
+/** Stop hook input (when Claude finishes responding) */
+export interface StopInput extends BaseHookInput {
+  hook_event_name: "Stop";
+  stop_hook_active?: boolean;
+}
+
+/** SubagentStop hook input (when a subagent finishes) */
+export interface SubagentStopInput extends BaseHookInput {
+  hook_event_name: "SubagentStop";
+  stop_hook_active?: boolean;
+}
+
+/** PreCompact hook input (before context compaction) */
+export interface PreCompactInput extends BaseHookInput {
+  hook_event_name: "PreCompact";
+  trigger: "auto" | "manual";
+  custom_instructions?: string;
+}
+
+/** Union type of all hook inputs */
+export type HookInput =
+  | SessionStartInput
+  | SessionEndInput
+  | UserPromptSubmitInput
+  | PreToolUseInput
+  | PostToolUseInput
+  | StopInput
+  | SubagentStopInput
+  | PreCompactInput;
 
 // ============================================================================
 // Hook Output Types
@@ -87,7 +144,7 @@ export interface SessionEntry {
   duration_ms?: number;
 }
 
-/** Tool output entry in raw-outputs/ directory */
+/** Tool output entry in raw-outputs/ directory (legacy format) */
 export interface ToolOutputEntry {
   timestamp: string;
   session_id: string;
@@ -97,6 +154,31 @@ export interface ToolOutputEntry {
   tool_output?: string;
   tool_error?: string;
   cwd: string;
+}
+
+/** Unified event entry for raw-outputs/ directory */
+export interface EventEntry {
+  timestamp: string;
+  event_type: HookEventName;
+  session_id: string;
+  cwd: string;
+  transcript_path: string;
+  // Event-specific fields
+  // SessionStart
+  source?: "startup" | "resume" | "clear" | "compact";
+  // UserPromptSubmit
+  prompt?: string;
+  // PreToolUse / PostToolUse
+  tool_name?: string;
+  tool_input?: Record<string, unknown>;
+  tool_use_id?: string;
+  tool_output?: string;
+  tool_error?: string;
+  // Stop / SubagentStop
+  stop_hook_active?: boolean;
+  // PreCompact
+  trigger?: "auto" | "manual";
+  custom_instructions?: string;
 }
 
 /** Learning entry in learnings/ directory */
@@ -151,7 +233,7 @@ export async function ensureDir(dir: string): Promise<void> {
 /** Append JSON line to file */
 export async function appendJsonl(
   filepath: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
 ): Promise<void> {
   const { appendFile } = await import("fs/promises");
   await appendFile(filepath, JSON.stringify(data) + "\n");
