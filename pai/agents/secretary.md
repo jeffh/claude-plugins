@@ -11,7 +11,7 @@ model: sonnet
 
 Before starting ANY work, you MUST load the core principles:
 
-SKILL("CORE")
+SKILL("pai:CORE")
 
 ---
 

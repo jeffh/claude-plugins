@@ -1,88 +1,147 @@
 {
-    "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-    "name": "jeffh-claude-plugins",
-    "version": "1.0.0",
-    "description": "Various Plugins for Claude Code",
-    "owner": {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "jeffh-claude-plugins",
+  "version": "1.0.0",
+  "description": "Various Plugins for Claude Code",
+  "owner": {
+    "name": "Jeff Hui",
+    "email": "jeff@jeffhui.net"
+  },
+  "plugins": [
+    {
+      "name": "humanlayer",
+      "description": "Commands and agents from humanlayer, but without the thought syncing",
+      "source": "./humanlayer",
+      "category": "development",
+      "version": "2025-12-15",
+      "author": {
+        "name": "HumanLayer"
+      }
+    },
+    {
+      "name": "jj",
+      "description": "Jujutsu (jj) version control commands",
+      "source": "./jj",
+      "category": "development",
+      "version": "2025-12-15",
+      "author": {
         "name": "Jeff Hui",
         "email": "jeff@jeffhui.net"
+      }
     },
-    "plugins": [
-        {
-            "name": "humanlayer",
-            "description": "Commands and agents from humanlayer, but without the thought syncing",
-            "source": "./humanlayer",
-            "category": "development",
-            "version": "2025-12-15",
-            "author": {
-                "name": "HumanLayer"
-            }
-        },
-        {
-            "name": "jj",
-            "description": "Jujutsu (jj) version control commands",
-            "source": "./jj",
-            "category": "development",
-            "version": "2025-12-15",
-            "author": {
-                "name": "Jeff Hui",
-                "email": "jeff@jeffhui.net"
-            }
-        },
-        {
-            "name": "gh",
-            "description": "GitHub CLI operations and repository management",
-            "source": "./gh",
-            "category": "development",
-            "version": "2025-12-15",
-            "author": {
-                "name": "Jeff Hui",
-                "email": "jeff@jeffhui.net"
-            }
-        },
-        {
-            "name": "pai",
-            "description": "Personal AI Infrastructure - 13 principles for deterministic, CLI-first AI with specialized agents and full history capture",
-            "source": "./pai",
-            "category": "productivity",
-            "version": "2025-12-26",
-            "author": {
-                "name": "Jeff Hui",
-                "email": "jeff@jeffhui.net"
-            },
-            "hooks": {
-                "SessionStart": [
-                    {
-                        "hooks": [
-                            {
-                                "type": "command",
-                                "command": "bun run \"$CLAUDE_PROJECT_DIR\"/pai/hooks/session-capture.ts"
-                            }
-                        ]
-                    }
-                ],
-                "SessionEnd": [
-                    {
-                        "hooks": [
-                            {
-                                "type": "command",
-                                "command": "bun run \"$CLAUDE_PROJECT_DIR\"/pai/hooks/session-capture.ts"
-                            }
-                        ]
-                    }
-                ],
-                "PostToolUse": [
-                    {
-                        "matcher": "*",
-                        "hooks": [
-                            {
-                                "type": "command",
-                                "command": "bun run \"$CLAUDE_PROJECT_DIR\"/pai/hooks/tool-capture.ts"
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-    ]
+    {
+      "name": "gh",
+      "description": "GitHub CLI operations and repository management",
+      "source": "./gh",
+      "category": "development",
+      "version": "2025-12-15",
+      "author": {
+        "name": "Jeff Hui",
+        "email": "jeff@jeffhui.net"
+      }
+    },
+    {
+      "name": "pai",
+      "description": "Personal AI Infrastructure - 13 principles for deterministic, CLI-first AI with specialized agents and full history capture",
+      "source": "./pai",
+      "category": "productivity",
+      "version": "2025-12-26",
+      "author": {
+        "name": "Jeff Hui",
+        "email": "jeff@jeffhui.net"
+      },
+      "hooks": {
+        "SessionStart": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/session-capture.ts\""
+              },
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/event-capture.ts\""
+              }
+            ]
+          }
+        ],
+        "SessionEnd": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/session-capture.ts\""
+              },
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/event-capture.ts\""
+              }
+            ]
+          }
+        ],
+        "UserPromptSubmit": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/event-capture.ts\""
+              }
+            ]
+          }
+        ],
+        "PreToolUse": [
+          {
+            "matcher": "*",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/event-capture.ts\""
+              }
+            ]
+          }
+        ],
+        "PostToolUse": [
+          {
+            "matcher": "*",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/event-capture.ts\""
+              }
+            ]
+          }
+        ],
+        "Stop": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/event-capture.ts\""
+              }
+            ]
+          }
+        ],
+        "SubagentStop": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/event-capture.ts\""
+              }
+            ]
+          }
+        ],
+        "PreCompact": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "bun run \"${CLAUDE_PLUGIN_ROOT}/hooks/event-capture.ts\""
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

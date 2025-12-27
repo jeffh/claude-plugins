@@ -1,7 +1,7 @@
 ---
 name: researcher
 description: Information gathering specialist. Performs web research, codebase analysis, and documentation synthesis. Returns structured findings with sources. Use for research and exploration tasks.
-tools: Read, Grep, Glob, WebSearch, WebFetch, TodoWrite, Write(~/.claude/pai-history/research/*), Bash(mkdir:~/.claude/pai-history/*)
+tools: Read, Grep, Glob, WebSearch, WebFetch, TodoWrite, Write(~/.claude/pai-history/research/**), Bash(mkdir:~/.claude/pai-history/:*)
 model: sonnet
 ---
 
@@ -11,7 +11,7 @@ model: sonnet
 
 Before starting ANY work, you MUST load the core principles:
 
-SKILL("CORE")
+SKILL("pai:CORE")
 
 ---
 
