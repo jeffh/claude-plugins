@@ -28,6 +28,33 @@ Based on:
 - Best narrative angles get missed in favor of first-thought approaches
 - Content needs to be explained in conversational, engaging way
 
+## Examples
+
+**Example 1: Create story explanation from YouTube video**
+```
+User: "Create a story explanation of https://youtube.com/watch?v=abc123"
+→ Routes to workflows/create.md
+→ Extracts transcript via fabric -y
+→ UltraThink explores 5+ narrative framings
+→ User receives 3-part narrative (opening/body/closing) in Daniel's voice
+```
+
+**Example 2: Story with inline source links**
+```
+User: "Create story explanation with links for this article"
+→ Routes to workflows/create-with-links.md
+→ Generates N sentences with inline source attribution after each
+→ User receives narrative with hyperlinked sources
+```
+
+**Example 3: Quick 5-line summary**
+```
+User: "Give me a CSE5 of this podcast"
+→ Routes to workflows/cse5.md
+→ Uses Foundry MCP for clean numbered format
+→ User receives 5 numbered lines, one concept per line
+```
+
 ## When to Activate This Skill
 
 - User requests story explanations or narrative summaries
