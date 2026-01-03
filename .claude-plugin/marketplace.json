@@ -41,6 +41,17 @@
       }
     },
     {
+      "name": "ralph",
+      "description": "Ralph Wiggum technique - iterative self-referential AI development loops using Stop hooks",
+      "source": "./ralph",
+      "category": "development",
+      "version": "2025-01-03",
+      "author": {
+        "name": "Jeff Hui",
+        "email": "jeff@jeffhui.net"
+      }
+    },
+    {
       "name": "pai",
       "description": "Personal AI Infrastructure - 13 principles for deterministic, CLI-first AI with specialized agents and full history capture",
       "source": "./pai",
