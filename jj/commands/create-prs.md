@@ -1,7 +1,7 @@
 ---
 description: Create PRs for all bookmarks in a jj stack with automatic stack linking
 model: claude-haiku-4-5
-tools: Bash(jj log:*), Bash(jj git push:*), Bash(jj show:*), Bash(jj diff:*), Bash(gh pr list:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*)
+tools: Bash(jj log:*), Bash(jj git push:*), Bash(jj diff:*), Bash(gh pr list:*), Bash(gh pr create:*), Bash(gh pr edit:*), Bash(gh pr view:*)
 ---
 
 # Create Pull Requests from Stack
@@ -22,7 +22,7 @@ jj log -r 'bookmarks()' --no-graph -T 'bookmarks ++ "\n"'
 jj log -r '::@ & mine()' --no-graph
 
 # List all bookmarks that need PRs (excluding main/master)
-jj log -r 'bookmarks() ~ (main | master)' --no-graph -T 'separate(" ", change_id.short(), bookmarks, description.first_line()) ++ "\n"'
+jj log -r 'bookmarks() ~ main' --no-graph -T 'separate(" ", change_id.short(), bookmarks, description.first_line()) ++ "\n"'
 ```
 
 - Identify the primary branch (`main` or `master`)
@@ -74,7 +74,7 @@ For each bookmark (in order from closest to main to furthest):
 **If PR doesn't exist:**
 1. Get the commit details:
    ```bash
-   jj show --no-pager -r '<bookmark>' --no-graph -T 'description'
+   jj log --no-pager -r '<bookmark>' --no-graph -T 'description'
    jj diff --no-pager -r '<bookmark>'
    ```
 2. Generate PR title from first line of commit description
@@ -158,7 +158,7 @@ Include:
 - `jj git push --allow-new` pushes all bookmarks and shows which are new
 - `jj log --no-pager -r 'ancestors(@, N)'` shows N ancestors of current revision
 - `jj log --no-pager -r 'bookmarks() ~ main'` shows all bookmarks except main
-- `jj show --no-pager -r <rev> -T 'description'` gets the full commit message
+- `jj log --no-pager -r <rev> --no-graph -T 'description'` gets the full commit message
 - Use `jj log -r '<bookmark>-'` to find the parent of a bookmark
 - Bookmark names become branch names when pushed
 
