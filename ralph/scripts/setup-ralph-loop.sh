@@ -200,4 +200,4 @@ if [[ "$COMPLETION_PROMISE" != "null" ]]; then
   echo "  If the loop should stop, the promise statement will become"
   echo "  true naturally. Do not force it by lying."
   echo "═══════════════════════════════════════════════════════════"
-fii
+fi
