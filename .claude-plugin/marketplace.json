@@ -9,6 +9,17 @@
   },
   "plugins": [
     {
+      "name": "discuss",
+      "description": "Interactive discussion workflows for planning features, creating reference docs, and clarifying thoughts through iterative Q&A",
+      "source": "./discuss",
+      "category": "productivity",
+      "version": "2026-01-12",
+      "author": {
+        "name": "Jeff Hui",
+        "email": "jeff@jeffhui.net"
+      }
+    },
+    {
       "name": "humanlayer",
       "description": "Commands and agents from humanlayer, but without the thought syncing",
       "source": "./humanlayer",
