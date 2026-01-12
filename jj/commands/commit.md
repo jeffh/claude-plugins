@@ -25,11 +25,21 @@ When a revset is provided, only add/update descriptions for those commits. Do no
 - Run `jj status --no-pager` to see modified files
 - Run `jj diff --no-pager` to review the actual changes
 - Determine if changes should be one change or split into multiple logical changes
+- Check for undescribed parent commits (see below)
 
 **If revset provided:**
 - Run `jj log --no-pager -r '<revset>'` to see which commits need descriptions
 - Run `jj diff --no-pager -r '<change_id>'` for each commit to understand its changes
 - Focus only on adding descriptions to the specified commits
+
+**Check for undescribed parent commits:**
+```bash
+# Find commits between trunk and @ that have no description (empty or "(no description set)")
+jj log --no-pager -r 'trunk()..@ & description(exact:"")' -T 'change_id ++ "\n"'
+```
+For each undescribed parent commit found:
+- Run `jj diff --no-pager -r '<change_id>'` to understand what it contains
+- Draft an appropriate commit message based on the changes
 
 ### 2. Plan Your Change(s)
 
@@ -54,16 +64,15 @@ Draft clear, descriptive commit messages following these guidelines:
 - `fix: prevent crash when config file is missing`
 - `refactor: extract validation logic into separate module`
 
-### 3. Present Your Plan
+### 3. Execute Immediately
 
-Show the user:
-- Which files are included in each change
-- The proposed commit message(s)
-- Ask: "I plan to create [N] change(s). Shall I proceed?"
+**First, describe any undescribed parent commits:**
+```bash
+# For each undescribed parent commit found in step 1
+jj describe -r <change_id> -m "commit message for parent"
+```
 
-### 4. Execute Upon Confirmation
-
-**For a single change (no revset):**
+**Then describe the current change (no revset):**
 ```bash
 jj describe -m "your commit message"
 ```

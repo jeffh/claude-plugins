@@ -1,7 +1,7 @@
 ---
 description: Commit, create bookmarks, push, and create PRs in one workflow
 model: claude-sonnet-4-5
-tools: Bash(jj status:*), Bash(jj log:*), Bash(jj bookmark create:*), Bash(jj git push:*), Bash(gh api:*), Bash(gh pr list:*), Bash(gh pr create:*), SlashCommand
+tools: Bash(jj status:*), Bash(jj git remote list:*), Bash(jj log:*), Bash(jj bookmark create:*), Bash(jj bookmark track:*), Bash(jj git push:*), Bash(gh api user:*), Bash(gh pr list:*), Bash(gh pr create:*) 
 ---
 
 # Commit, Push, and Create PRs
@@ -9,9 +9,9 @@ tools: Bash(jj status:*), Bash(jj log:*), Bash(jj bookmark create:*), Bash(jj gi
 You are tasked with executing the complete workflow from uncommitted changes to open pull requests.
 
 This command orchestrates three separate operations in sequence:
-1. **Commit** - Describe changes with proper commit messages (`/jj:commit`)
-2. **Bookmark** - Create bookmarks for the stack (`/jj:create-bookmarks`)
-3. **Push & PR** - Push to origin and create/update pull requests (`/jj:create-prs`)
+1. **Commit** - Describe changes with proper commit messages
+2. **Bookmark** - Create bookmarks for the stack
+3. **Push & PR** - Push to origin and create/update pull requests
 
 ## Process
 
@@ -22,6 +22,9 @@ Gather all information upfront:
 ```bash
 # Get GitHub username for bookmark prefix
 gh api user -q '.login'
+
+# List remotes
+jj git remote list
 
 # View current working copy status
 jj status --no-pager
@@ -40,6 +43,7 @@ Identify:
 - How many commits are in the stack
 - Which commits need descriptions
 - Which commits already have bookmarks
+- Which commits should have bookmarks (not every commit needs one)
 - Which bookmarks already have PRs
 - The GitHub username for bookmark prefix
 
@@ -57,13 +61,15 @@ Current state:
 
 **Ask these questions (as applicable):**
 
-1. **Bookmark prefix:** (default: `<github-username>/`)
+1. **Bookmark configuration:**
+   - break previous commits into multiple bookmarks, or one bookmark for the all changesets (if a bookmark isn't present)
+   - prefix of bookmark names to create (default: `<github-username>/`). Ask this only if bookmarks are needed.
 
 2. **PR configuration:** (only if creating new PRs)
+   - One PR for all changes, or one PR per bookmark
    - Stacked vs independent PRs
    - Draft vs published
-
-3. **Proceed with workflow?**
+   - Remote to push to (default: `origin`)
 
 Wait for user to answer all questions before proceeding.
 
@@ -73,7 +79,7 @@ Execute each phase in sequence. Do NOT ask for additional confirmation during ex
 
 **Step 1: Commit (if commits need descriptions)**
 
-Invoke `/jj:commit` with the appropriate revset. The commit command should execute without asking for confirmation since the user already approved the workflow.
+Invoke `/jj:commit` with the appropriate revset.
 
 **Step 2: Create Bookmarks (if commits need bookmarks)**
 
@@ -81,6 +87,14 @@ Create bookmarks using the prefix confirmed in Phase 2. Do not ask additional qu
 
 ```bash
 jj bookmark create <prefix><name> -r <change_id>
+jj bookmark track <bookmark> --remote=<remote>
+```
+
+An example would look like:
+
+```bash
+jj bookmark create jeffh/feature-xyz -r abc1234
+jj bookmark track jeffh/feature-xyz --remote=origin
 ```
 
 **Step 3: Push and Create PRs**
@@ -88,7 +102,7 @@ jj bookmark create <prefix><name> -r <change_id>
 Push and create PRs using the configuration confirmed in Phase 2.
 
 ```bash
-jj git push --allow-new
+jj git push
 gh pr create --head <bookmark> --base <base> --title "<title>" --body "<body>"
 ```
 
@@ -109,7 +123,7 @@ All changes are now in open pull requests.
 ## Skip Conditions
 
 - **Skip commit phase** if all commits already have descriptions
-- **Skip bookmark phase** if all commits already have bookmarks
+- **Skip bookmark phase** if current commit has bookmarks or the user requested
 - **Skip PR phase** if no bookmarks need PRs
 
 ## Important Rules
@@ -139,3 +153,4 @@ All changes are now in open pull requests.
 - The user trusts your judgment
 - Each sub-command handles its own user interactions
 - Focus on orchestration, not reimplementing the sub-commands
+- You have the capability to call multiple tools in a single response. You MUST do all of the above in a single message. Do not use any other tools or do anything else. Do not send any other text or messages besides these tool calls.
