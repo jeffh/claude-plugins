@@ -1,49 +1,34 @@
 ---
 description: Create jj changes with user approval and no Claude attribution
+argument-hint: "[revset]"
 model: claude-haiku-4-5
 tools: Bash(jj status:*), Bash(jj diff:*), Bash(jj log:*), Bash(jj describe:*), Bash(jj split:*), Bash(jj new:*)
 ---
 
 # Commit Changes with Jujutsu
 
-You are tasked with creating jj changes for the work done during this session.
+Create jj change descriptions for work done during this session. Write commit messages as if the user wrote them. NEVER add co-author information or Claude attribution.
 
-## Optional Parameter
+## Usage
 
-This command accepts an optional revset argument:
-- `/jj:commit` - Operate on the current working copy (`@`)
-- `/jj:commit <revset>` - Operate on specific revision(s) (e.g., `xyz`, `@-`, `trunk()..@`)
-
-When a revset is provided, only add/update descriptions for those commits. Do not split or modify other commits.
+- `/jj:commit` - Describe the working copy (`@`) and any undescribed parent commits
+- `/jj:commit <revset>` - Describe only the specified revision(s), without splitting or modifying other commits
 
 ## Process
 
-### 1. Understand What Changed
+### 1. Analyze Changes
 
-**If no revset provided (default):**
-- Review the conversation history to understand what was accomplished
-- Run `jj status --no-pager` to see modified files
-- Run `jj diff --no-pager` to review the actual changes
-- Determine if changes should be one change or split into multiple logical changes
-- Check for undescribed parent commits (see below)
-
-**If revset provided:**
-- Run `jj log --no-pager -r '<revset>'` to see which commits need descriptions
-- Run `jj diff --no-pager -r '<change_id>'` for each commit to understand its changes
-- Focus only on adding descriptions to the specified commits
-
-**Check for undescribed parent commits:**
 ```bash
-# Find commits between trunk and @ that have no description (empty or "(no description set)")
+jj status --no-pager
+jj diff --no-pager
 jj log --no-pager -r 'trunk()..@ & description(exact:"")' -T 'change_id ++ "\n"'
 ```
-For each undescribed parent commit found:
-- Run `jj diff --no-pager -r '<change_id>'` to understand what it contains
-- Draft an appropriate commit message based on the changes
 
-### 2. Plan Your Change(s)
+Run `jj diff --no-pager -r '<change_id>'` for each undescribed commit, including parents.
 
-Draft clear, descriptive commit messages following these guidelines:
+If a revset was provided, use `jj log --no-pager -r '<revset>'` and diff each commit instead.
+
+### 2. Write Commit Messages
 
 **Format:**
 ```
@@ -55,95 +40,27 @@ Draft clear, descriptive commit messages following these guidelines:
 **Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`
 
 **Rules:**
-- Subject line: imperative mood, lowercase, no period, max 50 chars
+- Subject: imperative mood, lowercase, no period, max 50 chars
 - Body: wrap at 72 chars, explain WHY not just WHAT
-- Focus on the user's intent, not implementation details
-
-**Examples:**
-- `feat: add dark mode toggle to settings`
-- `fix: prevent crash when config file is missing`
-- `refactor: extract validation logic into separate module`
-
-### 3. Execute Immediately
-
-**First, describe any undescribed parent commits:**
-```bash
-# For each undescribed parent commit found in step 1
-jj describe -r <change_id> -m "commit message for parent"
-```
-
-**Then describe the current change (no revset):**
-```bash
-jj describe -m "your commit message"
-```
-
-**For a specific revision (revset provided):**
-```bash
-jj describe -r <change_id> -m "your commit message"
-```
-
-**For multiple changes** (split by file paths, no revset only):
-```bash
-# Split specific files into first change with message
-jj split -m "first change message" path/to/file1 path/to/dir/
-
-# Describe the remaining change (now in @)
-jj describe -m "second change message"
-```
-
-For three or more changes, chain splits:
-```bash
-jj split -m "first message" files-for-first-change/
-jj split -m "second message" files-for-second-change/
-jj describe -m "third message"
-```
-
-**Show results:**
-```bash
-# Default (no revset)
-jj log --no-pager -r 'ancestors(@, 5)'
-
-# With revset
-jj log --no-pager -r '<revset>'
-```
-
-## Important Rules
-
-- **NEVER add co-author information or Claude attribution**
-- Commits should be authored solely by the user
-- Do not include "Generated with Claude" or "Co-Authored-By" lines
-- Write commit messages as if the user wrote them
-
-## Jujutsu Concepts
-
-- **Automatic tracking**: All file changes are automatically tracked in the working copy change (@)
-- **No staging**: Unlike git, there's no staging area - `jj describe` sets the message directly
-- **Working copy is a change**: The @ revision always represents uncommitted work
-- **`jj new`**: Creates a new empty change on top of the current one (use after describing to start fresh)
-- **`jj split -m "msg" paths`**: Non-interactively splits specified paths into a new change with the given message
-- **`jj squash`**: Combines the current change into its parent
-
-## Common Patterns
-
-**Describe current work and start fresh:**
-```bash
-jj describe -m "message"
-jj new
-```
-
-**View recent changes:**
-```bash
-jj log --no-pager -r 'ancestors(@, 10)'
-```
-
-**Check what will be committed:**
-```bash
-jj diff --no-pager -r @
-```
-
-## Remember
-
-- You have full context of what was done this session
-- Group related changes together logically
+- Group related changes logically
 - Keep changes focused and atomic
-- The user trusts your judgment - they asked you to commit
+
+### 3. Apply Descriptions
+
+```bash
+jj describe -m "message"              # current change
+jj describe -r <change_id> -m "msg"   # specific revision
+```
+
+**To split into multiple changes** (only when no revset provided):
+```bash
+jj split -m "first message" path/to/files/
+jj split -m "second message" more/files/
+jj describe -m "remaining changes"
+```
+
+### 4. Show Results
+
+```bash
+jj log --no-pager -r 'ancestors(@, 5)'
+```
