@@ -1,5 +1,6 @@
 ---
 description: Create jj changes with user approval and no Claude attribution
+argument-hint: "[revset]"
 model: claude-haiku-4-5
 tools: Bash(jj status:*), Bash(jj diff:*), Bash(jj log:*), Bash(jj describe:*), Bash(jj split:*), Bash(jj new:*)
 ---
