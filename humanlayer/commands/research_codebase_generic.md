@@ -125,18 +125,13 @@ Then wait for the user's research query.
      ```
 
 7. **Add GitHub permalinks (if applicable):**
-   - Check if on main branch or if commit is pushed:
-     - For git users: `git branch --show-current` and `git status`
-     - For jj users: `jj log -r @ --no-graph -T 'bookmarks'` and `jj status`
+   - Check if on main branch or if commit is pushed: `git branch --show-current` and `git status`
    - If on main/master or pushed, generate GitHub permalinks:
      - Get repo info: `gh repo view --json owner,name`
-     - Get commit hash:
-       - For git users: Use current HEAD commit
-       - For jj users: `jj log -r @ --no-graph -T 'commit_id'`
      - Create permalinks: `https://github.com/{owner}/{repo}/blob/{commit}/{file}#L{line}`
    - Replace local file references with permalinks in the document
 
-8. **Present findings:**
+8. **Sync and present findings:**
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
    - Ask if they have follow-up questions or need clarification

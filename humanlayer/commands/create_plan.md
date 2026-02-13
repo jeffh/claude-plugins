@@ -276,7 +276,7 @@ After structure approval:
 - Similar implementation: `[file:line]`
 ````
 
-### Step 5: Review
+### Step 5: Sync and Review
 
 1. **Present the draft plan location**:
    ```
@@ -295,7 +295,6 @@ After structure approval:
    - Adjust technical approach
    - Clarify success criteria (both automated and manual)
    - Add/remove scope items
-
 4. **Continue refining** until the user is satisfied
 
 ## Important Guidelines
