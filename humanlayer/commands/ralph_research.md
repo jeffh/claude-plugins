@@ -47,6 +47,7 @@ think deeply about the findings
 3a. summarize key findings and technical decisions
 3b. identify potential implementation approaches
 3c. note any risks or concerns discovered
+3d. save the research document
 
 4. update the ticket:
 4a. attach the research document to the ticket using the MCP tools with proper link formatting
@@ -67,6 +68,7 @@ Research topic: [research topic description]
 The research has been:
 
 Created at thoughts/shared/research/YYYY-MM-DD-ENG-XXXX-description.md
+Saved to thoughts directory
 Attached to the Linear ticket
 Ticket moved to "research in review" status
 

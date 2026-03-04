@@ -55,14 +55,6 @@ For each copied file (both commands and agents):
      ---
      ```
    - Convert the script's functionality into skill instructions within `SKILL.md`
-   - If the script uses git-specific commands, include both git and jj (Jujutsu) equivalents in the skill instructions:
-     ```
-     For git users:
-     - <git command>
-
-     For jj users:
-     - <jj equivalent>
-     ```
    - Replace the script reference in the original file with instructions to use the Skill tool
 3. Report which skills were created and which script references were replaced
 
@@ -78,29 +70,7 @@ humanlayer/skills/
 - `description`: explains both what the skill does AND when it should be activated (max 1024 chars)
 - `allowed-tools` (optional): comma-separated list of tools the skill can use
 
-### Step 5: Git/JJ Dual Support
-
-For any agents that involve version control operations:
-
-1. Identify git-specific commands (e.g., `git status`, `git commit`, `git branch`)
-2. Add equivalent jj commands alongside git commands
-3. Structure the instructions to support both workflows:
-   ```
-   For git users:
-   - <git command>
-
-   For jj users:
-   - <jj equivalent>
-   ```
-4. Common conversions:
-   - `git status` → `jj status`
-   - `git branch` → `jj bookmark list`
-   - `git commit` → `jj describe`
-   - `git push` → `jj git push`
-   - `git log` → `jj log`
-   - `git diff` → `jj diff`
-
-### Step 6: Validation
+### Step 5: Validation
 
 1. Verify that all copied files are valid markdown
 2. Verify that all agent files have proper frontmatter with `name`, `description`, `tools`, and `model` fields
@@ -108,7 +78,7 @@ For any agents that involve version control operations:
 4. Check that no references to `thoughts sync` remain in any files
 5. Report any validation issues found
 
-### Step 7: Summary Report
+### Step 6: Summary Report
 
 Provide a comprehensive summary including:
 - Number of commands copied

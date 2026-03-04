@@ -46,6 +46,7 @@ Approach: [selected approach description]
 The plan has been:
 
 Created at thoughts/shared/plans/YYYY-MM-DD-ENG-XXXX-description.md
+Saved to thoughts directory
 Attached to the Linear ticket
 Ticket moved to "plan in review" status
 

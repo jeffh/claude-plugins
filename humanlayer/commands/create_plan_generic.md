@@ -275,7 +275,7 @@ After structure approval:
 - Similar implementation: `[file:line]`
 ````
 
-### Step 5: Review
+### Step 5: Sync and Review
 
 1. **Present the draft plan location**:
    ```
