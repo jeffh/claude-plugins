@@ -31,21 +31,20 @@ Identify:
 - Existing PRs and which bookmarks need new ones
 - GitHub username for bookmark prefix
 
-## Phase 2: Ask All Questions Upfront
+## Phase 2: Apply Defaults
 
-Present the current state summary, then ask ALL applicable questions before executing:
+Use sensible defaults without prompting:
 
-**Bookmark configuration** (if bookmarks needed):
-- One bookmark for all changesets, or multiple bookmarks?
-- Bookmark name prefix (default: `<github-username>/`)
+**Bookmark configuration**:
+- Create one bookmark per commit in the stack
+- Use `<github-username>/` as bookmark prefix
+- Derive bookmark name from commit description (lowercase, dash-separated)
 
-**PR configuration** (if creating new PRs):
-- One PR for all changes, or one PR per bookmark?
-- Stacked vs independent PRs
-- Draft vs published
-- Remote to push to (default: `origin`)
-
-Wait for answers before proceeding.
+**PR configuration**:
+- Create one PR per bookmark (stacked PRs)
+- Base each PR on its parent bookmark (or trunk for first PR)
+- Published (not draft)
+- Push to `origin` remote
 
 ## Phase 3: Execute Workflow
 
