@@ -1,132 +1,76 @@
 # JJ Plugin
 
 **Category:** Development
-**Version:** 2025-10-12
+**Version:** 2026-07-09
 **Author:** Jeff Hui (jeff@jeffhui.net)
 
-Jujutsu (jj) version control commands for Claude Code. This plugin provides workflow commands specifically designed for developers using Jujutsu VCS, offering streamlined commit management, rebasing, and pull request creation.
+Jujutsu (jj) version control workflows for Claude Code. This plugin provides streamlined commit management, rebasing, and pull request creation for developers using Jujutsu VCS.
 
-## Commands
+## Architecture: thin commands + skills
 
-The jj plugin provides 3 slash commands for Jujutsu workflows:
+Each workflow is a **hybrid command + skill** pair:
 
-### `/commit`
+- **Thin slash command** (`jj/commands/<name>.md`) — a `## Context` block that front-loads every read-only command using the auto-executing `` !`…` `` bash syntax, so the full picture (status, diff, log, templates) is in context *before* any message is written. It then hands off to the matching skill.
+- **Skill** (`jj/skills/<name>/SKILL.md`) — owns the workflow logic and decisions. Skills carry a third-person, trigger-rich description so Claude can invoke them by intent, and declare **no model pin** (each inherits the session model).
 
-Creates jj commits for changes made during your session.
+Because auto-executing `` !`…` `` context injection is a slash-command feature (skills can't run it), each skill also carries a fallback: if the pre-gathered context is absent, it gathers the same context itself before proceeding.
 
-**Features:**
-- Supports both git and Jujutsu version control systems
-- Groups related changes logically into atomic commits
-- Follows repository commit message conventions
+Skills are invoked as `jj:commit`, `jj:commit-push-pr`, and `jj:rebase`.
+
+## Commands & skills
+
+### `/jj:commit` → skill `jj:commit`
+
+Describe jj changes made during your session.
+
+**Behavior:**
+- Front-loads `jj status`, `jj diff`, the undescribed-change list, recent log, and any configured commit template
+- Writes conventional commit messages (`<type>: <subject>`) as if the user wrote them
+- **Honors a configured commit template** (`templates.draft_commit_description` in jj, or `commit.template` in git); otherwise matches recent log style
+- Groups related changes into atomic commits; supports `jj split`
 - Never adds Claude attribution or co-author information
-- Presents commit plan before execution
-- Uses `jj describe` for commit messages
-- Supports `jj split` for creating multiple logical commits
-
-**Usage:**
-```bash
-/commit
-```
-
-**Jujutsu-specific behavior:**
-- Automatically tracks all changes in the working copy
-- Uses `jj describe` to set commit messages
-- Can use `jj split` to separate changes into multiple commits
-- Updates working copy revision automatically
+- Accepts an optional revset: `/jj:commit <revset>` describes only that revision without splitting
 
 ---
 
-### `/rebase`
+### `/jj:commit-push-pr` → skill `jj:commit-push-pr`
 
-Rebases the current changeset onto the primary branch.
+Run the full workflow from uncommitted changes to open pull requests: describe → bookmark → push → PR.
 
-**Features:**
-- Automatically detects primary branch (main or master)
-- Fetches latest changes before rebasing
-- Handles the entire changeset chain
-- Reports conflicts clearly if they occur
-- Shows updated commit tree after completion
-
-**Usage:**
-```bash
-/rebase
-```
-
-**Process:**
-1. Determines primary branch (main or master)
-2. Fetches latest changes with `jj git fetch`
-3. Identifies current changeset
-4. Rebases current changeset and descendants onto primary branch
-5. Displays updated commit tree
-
-**Important:**
-- Does not rebase changesets that are part of bookmarks you plan to delete
-- Only rebases the current changeset chain, not other branches
-- Stops and reports if conflicts are encountered
-
----
-
-### `/create_prs`
-
-Creates pull requests for all changes in the current jj tree, including stack visualization.
-
-**Features:**
-- Creates PRs for entire jj changeset stack
-- Supports both draft and published PRs
-- Configurable base branch strategy (main-based or parent-based)
-- Automatically generates descriptive PR titles and bodies
-- Updates all PR descriptions with stack visualization
-- Shows which PR corresponds to which bookmark
+**Behavior:**
+- Front-loads GitHub user, remotes, stack log, open PRs, and any repo PR template
+- Delegates describing to the `jj:commit` skill
+- Creates one bookmark per commit (prefix `<github-username>/`) and one stacked PR per bookmark
+- **Honors a GitHub PR template** (`.github/PULL_REQUEST_TEMPLATE.md` and common variants) when present, filling out its sections; otherwise writes a concise body with no "Test plan" section
 - Never adds Claude attribution or co-author information
 
-**Usage:**
-```bash
-/create_prs
-```
-
-**Interactive prompts:**
-- Choose between main-branch-based or parent-based PRs
-- Choose between draft or published PRs
-
-**Stack visualization example:**
-```md
-Stack:
- - https://github.com/org/repo/pull/123
- - https://github.com/org/repo/pull/124 <-- This PR
- - https://github.com/org/repo/pull/125
-```
-
-**Process:**
-1. Asks about PR configuration preferences
-2. Pushes all branches to remote
-3. Creates PRs with descriptive titles and bodies
-4. Adds stack visualization to all PR descriptions
-5. Generates summary table of created PRs
-
 ---
+
+### `/jj:rebase` → skill `jj:rebase`
+
+Rebase the current changeset stack onto the latest trunk.
+
+**Behavior:**
+- Front-loads `jj git fetch` and the stack root
+- Rebases the entire stack (root through `@`) onto `trunk()`
+- Falls back to `main@origin` / `master@origin` when `trunk()` is not configured
+- Reports conflicts clearly and stops — never auto-resolves
+- Reports "already up to date" when the stack is already on trunk
 
 ## Requirements
 
 ### Jujutsu VCS
 
-This plugin requires Jujutsu to be installed and configured:
-
 ```bash
-# Install jujutsu
-brew install jj  # macOS
-# or see https://github.com/martinvonz/jj for other platforms
+brew install jj  # macOS; see https://github.com/martinvonz/jj for other platforms
 ```
 
 ### GitHub CLI
 
-The `/create_prs` command requires the GitHub CLI:
+Required by `/jj:commit-push-pr`:
 
 ```bash
-# Install GitHub CLI
-brew install gh  # macOS
-# or see https://cli.github.com/ for other platforms
-
-# Authenticate
+brew install gh  # macOS; see https://cli.github.com/ for other platforms
 gh auth login
 ```
 
@@ -137,11 +81,9 @@ For developers new to Jujutsu:
 - **Changesets**: Jujutsu works with changesets instead of commits. Each change is automatically tracked.
 - **Bookmarks**: Similar to Git branches, but more flexible.
 - **Working copy**: Represented by `@` in logs, automatically updated by operations.
-- **Revisions**: Can be referenced by ID or expressions like `@` (current working copy) or `@-` (parent).
+- **Revisions**: Referenced by ID or expressions like `@` (current working copy) or `@-` (parent).
 
 ## Comparison with Git
-
-If you're familiar with Git:
 
 - `jj describe` ≈ `git commit`
 - `jj split` ≈ `git add -p` + multiple commits

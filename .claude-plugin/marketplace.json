@@ -42,10 +42,10 @@
     },
     {
       "name": "jj",
-      "description": "Jujutsu (jj) version control commands",
+      "description": "Jujutsu (jj) version control skills for committing, pushing, opening PRs, and rebasing",
       "source": "./jj",
       "category": "development",
-      "version": "2026-02-16",
+      "version": "2026-07-09",
       "author": {
         "name": "Jeff Hui",
         "email": "jeff@jeffhui.net"
