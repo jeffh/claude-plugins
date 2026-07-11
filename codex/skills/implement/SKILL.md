@@ -29,15 +29,13 @@ Everywhere below shows `-m gpt-5.5`; substitute the chosen model.
    codex exec \
      -m gpt-5.5 \
      -s workspace-write \
-     -a on-request \
      --skip-git-repo-check \
      -C "$PWD" \
      "<PROMPT>"
    ```
 
    - `-m gpt-5.5` — the model; default `gpt-5.5`, or the model the user named (see [Choosing the model](#choosing-the-model)).
-   - `-s workspace-write` — Codex may write files under the workdir + `$TMPDIR`.
-   - `-a on-request` — Codex asks before escalating out of the sandbox; safest default. Only switch to `--dangerously-bypass-approvals-and-sandbox` if the user explicitly asks for autonomous execution.
+   - `-s workspace-write` — Codex may write files under the workdir + `$TMPDIR`; this is the safe default. `codex exec` runs non-interactively with approval mode `never` (there is no `-a`/`--ask-for-approval` flag), so Codex cannot prompt to escalate — it simply stays within the sandbox. Only switch to `--dangerously-bypass-approvals-and-sandbox` if the user explicitly asks for autonomous, unsandboxed execution.
    - `-C "$PWD"` — pin the workspace to Claude's current directory.
    - `--skip-git-repo-check` — allow running outside a git repo. Drop this if the user's task is git-related.
    - **Always set an explicit Bash `timeout`.** Implementation runs are slow and the Bash default (120000 ms / 2 min) will kill Codex mid-run. Pass `timeout: 600000` (10 min — the maximum the Bash tool allows) on every `codex exec` call.
@@ -46,7 +44,7 @@ Everywhere below shows `-m gpt-5.5`; substitute the chosen model.
 3. Quote the prompt safely. For multi-line prompts, pipe via stdin instead:
 
    ```bash
-   codex exec -m gpt-5.5 -s workspace-write -a on-request --skip-git-repo-check -C "$PWD" - <<'EOF'
+   codex exec -m gpt-5.5 -s workspace-write --skip-git-repo-check -C "$PWD" - <<'EOF'
    <PROMPT>
    EOF
    ```
