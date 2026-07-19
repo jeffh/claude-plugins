@@ -2,23 +2,31 @@
 name: review
 model: claude-sonnet-5
 effort: low
-argument-hint: "[--model <gpt-model>] [review focus]"
-description: Delegate a read-only code review to a Codex subagent (GPT 5.5) that inspects code and reports findings without editing anything. Use when the user wants Codex — or "GPT-5.5" — to review, look over, audit, or give a second opinion on a diff, branch, pull request, or commit, whether they say "have Codex review…", "get Codex's take on my changes", or type `/codex:review`. Do NOT use when the user wants Codex to fix or implement changes (use codex:implement); to drive desktop or browser UI (use codex:computer); or when they want Claude's own review rather than a Codex second opinion (use the code-review skill).
+argument-hint: "[--model <gpt-model>] [--effort <level>] [review focus]"
+description: Delegate a read-only code review to a Codex subagent (GPT 5.6 Sol by default) that inspects code and reports findings without editing anything. Use when the user wants Codex — or "GPT-5.5" — to review, look over, audit, or give a second opinion on a diff, branch, pull request, or commit, whether they say "have Codex review…", "get Codex's take on my changes", or type `/codex:review`. Do NOT use when the user wants Codex to fix or implement changes (use codex:implement); to drive desktop or browser UI (use codex:computer); or when they want Claude's own review rather than a Codex second opinion (use the code-review skill).
 ---
 
 # Codex Review
 
-Delegate a read-only code review to a Codex subagent running **GPT 5.5** (or another GPT model the user names). The subagent reads code and returns findings; it does not write files.
+Delegate a read-only code review to a Codex subagent running **GPT 5.6 Sol** (or another GPT model the user names). The subagent reads code and returns findings; it does not write files.
 
 ## Choosing the model
 
-The `-m` flag selects the model. Default to `gpt-5.5`, but honor any specific model the user asks for:
+The `-m` flag selects the model. Default to `gpt-5.6-sol`, but honor any specific model the user asks for:
 
-- Use `gpt-5.5` unless the user names a different model.
+- Use `gpt-5.6-sol` unless the user names a different model.
 - If the user specifies a model — e.g. "review with gpt-5.6-terra", "use gpt-5.5-codex", "with the `<name>` model" — pass that exact string to `-m` instead. Don't validate or second-guess the name; Codex will error if it's unknown.
 - If they typed `/codex:review --model <name> <task>` (or `-m <name>`), strip that flag from the review instructions and use `<name>` as the model.
 
-The command below shows `-m gpt-5.5`; substitute the chosen model.
+## Choosing the effort
+
+Reasoning effort is set with `-c model_reasoning_effort="<level>"`. Default to `high`, but honor any level the user asks for:
+
+- Use `high` unless the user names a different level.
+- If the user asks in prose — e.g. "low effort", "medium effort" — substitute that level.
+- If they typed `/codex:review --effort <level> [focus]`, strip that flag from the review instructions and use `<level>` as the effort.
+
+The command below shows `-m gpt-5.6-sol` and high effort; substitute the chosen model and effort.
 
 ## How to invoke
 
@@ -35,14 +43,16 @@ Command shape:
 
 ```
 codex exec review \
-  -m gpt-5.5 \
+  -m gpt-5.6-sol \
+  -c model_reasoning_effort="high" \
   --skip-git-repo-check \
   -C "$PWD" \
   <target-flag> \
   "<REVIEW-PROMPT>"
 ```
 
-- `-m gpt-5.5` — the model; default `gpt-5.5`, or the model the user named (see [Choosing the model](#choosing-the-model)).
+- `-m gpt-5.6-sol` — the model; default `gpt-5.6-sol`, or the model the user named (see [Choosing the model](#choosing-the-model)).
+- `-c model_reasoning_effort="high"` — reasoning effort; default `high`, or the level the user named (see [Choosing the effort](#choosing-the-effort)).
 - `codex exec review` (not plain `codex review`) — the `exec` form is non-interactive and prints to stdout.
 - No `-s` / `-a` needed: review mode is inherently read-only.
 - **Always set an explicit Bash `timeout`.** Reviews are slow and the Bash default (120000 ms / 2 min) will cut Codex off before it finishes. Pass `timeout: 600000` (10 min — the maximum the Bash tool allows) on every `codex exec review` call. For a very large diff that may exceed 10 minutes, run the Bash call with `run_in_background: true` and poll instead, since a foreground call cannot exceed the 600000 ms cap.
