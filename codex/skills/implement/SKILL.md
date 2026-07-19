@@ -2,23 +2,31 @@
 name: implement
 model: claude-sonnet-5
 effort: low
-argument-hint: "[--model <gpt-model>] <task to implement>"
-description: Delegate a coding task to a Codex subagent (GPT 5.5) that writes files directly in the working directory. Use when the user wants Codex — or "GPT-5.5" — to build, implement, write, add, refactor, fix, or otherwise change code, whether they say "have Codex do X", "get Codex to…", "hand this to Codex", or type `/codex:implement`. Do NOT use for read-only code review where Codex inspects a diff, branch, PR, or commit without editing (use codex:review); for driving desktop or browser UI (use codex:computer); when the user wants Claude to make the change itself rather than delegate; or for a trivial edit Claude can just do in one step.
+argument-hint: "[--model <gpt-model>] [--effort <level>] <task to implement>"
+description: Delegate a coding task to a Codex subagent (GPT 5.6 Sol by default) that writes files directly in the working directory. Use when the user wants Codex — or "GPT-5.5" — to build, implement, write, add, refactor, fix, or otherwise change code, whether they say "have Codex do X", "get Codex to…", "hand this to Codex", or type `/codex:implement`. Do NOT use for read-only code review where Codex inspects a diff, branch, PR, or commit without editing (use codex:review); for driving desktop or browser UI (use codex:computer); when the user wants Claude to make the change itself rather than delegate; or for a trivial edit Claude can just do in one step.
 ---
 
 # Codex Implement
 
-Delegate an implementation task to a Codex subagent running **GPT 5.5** (or another GPT model the user names). The subagent will edit files in the current working directory.
+Delegate an implementation task to a Codex subagent running **GPT 5.6 Sol** (or another GPT model the user names). The subagent will edit files in the current working directory.
 
 ## Choosing the model
 
-The `-m` flag selects the model. Default to `gpt-5.5`, but honor any specific model the user asks for:
+The `-m` flag selects the model. Default to `gpt-5.6-sol`, but honor any specific model the user asks for:
 
-- Use `gpt-5.5` unless the user names a different model.
+- Use `gpt-5.6-sol` unless the user names a different model.
 - If the user specifies a model — e.g. "run gpt-5.6-terra", "use gpt-5.5-codex", "with the `<name>` model" — pass that exact string to `-m` instead. Don't validate or second-guess the name; Codex will error if it's unknown.
 - If they typed `/codex:implement --model <name> <task>` (or `-m <name>`), strip that flag from the prompt and use `<name>` as the model.
 
-Everywhere below shows `-m gpt-5.5`; substitute the chosen model.
+## Choosing the effort
+
+Reasoning effort is set with `-c model_reasoning_effort="<level>"`. Default to `high`, but honor any level the user asks for:
+
+- Use `high` unless the user names a different level.
+- If the user asks in prose — e.g. "low effort", "medium effort" — substitute that level.
+- If they typed `/codex:implement --effort <level> <task>`, strip that flag from the prompt and use `<level>` as the effort.
+
+Everywhere below shows `-m gpt-5.6-sol` and high effort; substitute the chosen model and effort.
 
 ## How to invoke
 
@@ -27,14 +35,16 @@ Everywhere below shows `-m gpt-5.5`; substitute the chosen model.
 
    ```
    codex exec \
-     -m gpt-5.5 \
+     -m gpt-5.6-sol \
+     -c model_reasoning_effort="high" \
      -s workspace-write \
      --skip-git-repo-check \
      -C "$PWD" \
      "<PROMPT>"
    ```
 
-   - `-m gpt-5.5` — the model; default `gpt-5.5`, or the model the user named (see [Choosing the model](#choosing-the-model)).
+   - `-m gpt-5.6-sol` — the model; default `gpt-5.6-sol`, or the model the user named (see [Choosing the model](#choosing-the-model)).
+   - `-c model_reasoning_effort="high"` — reasoning effort; default `high`, or the level the user named (see [Choosing the effort](#choosing-the-effort)).
    - `-s workspace-write` — Codex may write files under the workdir + `$TMPDIR`; this is the safe default. `codex exec` runs non-interactively with approval mode `never` (there is no `-a`/`--ask-for-approval` flag), so Codex cannot prompt to escalate — it simply stays within the sandbox. Only switch to `--dangerously-bypass-approvals-and-sandbox` if the user explicitly asks for autonomous, unsandboxed execution.
    - `-C "$PWD"` — pin the workspace to Claude's current directory.
    - `--skip-git-repo-check` — allow running outside a git repo. Drop this if the user's task is git-related.
@@ -44,7 +54,7 @@ Everywhere below shows `-m gpt-5.5`; substitute the chosen model.
 3. Quote the prompt safely. For multi-line prompts, pipe via stdin instead:
 
    ```bash
-   codex exec -m gpt-5.5 -s workspace-write --skip-git-repo-check -C "$PWD" - <<'EOF'
+   codex exec -m gpt-5.6-sol -c model_reasoning_effort="high" -s workspace-write --skip-git-repo-check -C "$PWD" - <<'EOF'
    <PROMPT>
    EOF
    ```

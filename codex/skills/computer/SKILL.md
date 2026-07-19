@@ -2,23 +2,31 @@
 name: computer
 model: claude-sonnet-5
 effort: low
-argument-hint: "[--model <gpt-model>] <UI task to perform>"
-description: Delegate a desktop or browser UI task to a Codex subagent (GPT 5.5) using Computer Use, where it reads the Mac screen and drives apps by clicking, typing, and scrolling. Use when the user wants Codex — or "GPT-5.5" — to operate a GUI app such as Chrome, Slack, Finder, Xcode, Figma, System Settings, or a website form, whether they say "have Codex click/open/fill/drag…" or type `/codex:computer`. Do NOT use for code or file work (use codex:implement to change code, codex:review to review it); prefer Claude's own Chrome tools for browser-only tasks when available. Flag risky real-world actions (sending messages, purchases, entering credentials) before invoking.
+argument-hint: "[--model <gpt-model>] [--effort <level>] <UI task to perform>"
+description: Delegate a desktop or browser UI task to a Codex subagent (GPT 5.6 Sol by default) using Computer Use, where it reads the Mac screen and drives apps by clicking, typing, and scrolling. Use when the user wants Codex — or "GPT-5.5" — to operate a GUI app such as Chrome, Slack, Finder, Xcode, Figma, System Settings, or a website form, whether they say "have Codex click/open/fill/drag…" or type `/codex:computer`. Do NOT use for code or file work (use codex:implement to change code, codex:review to review it); prefer Claude's own Chrome tools for browser-only tasks when available. Flag risky real-world actions (sending messages, purchases, entering credentials) before invoking.
 ---
 
 # Codex Computer Use
 
-Delegate a **desktop UI** task to a Codex subagent running **GPT 5.5** (or another GPT model the user names) with Codex's Computer Use feature. The subagent will take screenshots and drive the Mac by clicking, typing, and scrolling.
+Delegate a **desktop UI** task to a Codex subagent running **GPT 5.6 Sol** (or another GPT model the user names) with Codex's Computer Use feature. The subagent will take screenshots and drive the Mac by clicking, typing, and scrolling.
 
 ## Choosing the model
 
-The `-m` flag selects the model. Default to `gpt-5.5`, but honor any specific model the user asks for:
+The `-m` flag selects the model. Default to `gpt-5.6-sol`, but honor any specific model the user asks for:
 
-- Use `gpt-5.5` unless the user names a different model.
+- Use `gpt-5.6-sol` unless the user names a different model.
 - If the user specifies a model — e.g. "drive it with gpt-5.6-terra", "use the `<name>` model" — pass that exact string to `-m` instead. Don't validate or second-guess the name; Codex will error if it's unknown. Note the model must support Computer Use; if it doesn't, the run will fail and you should report that back.
 - If they typed `/codex:computer --model <name> <task>` (or `-m <name>`), strip that flag from the prompt and use `<name>` as the model.
 
-The command below shows `-m gpt-5.5`; substitute the chosen model.
+## Choosing the effort
+
+Reasoning effort is set with `-c model_reasoning_effort="<level>"`. Default to `low` for Computer Use — each action is a screenshot + reasoning cycle, and low effort keeps the loop fast. Honor any level the user asks for:
+
+- Use `low` unless the user names a different level.
+- If the user asks in prose — e.g. "high effort" — substitute that level.
+- If they typed `/codex:computer --effort <level> <task>`, strip that flag from the prompt and use `<level>` as the effort.
+
+The command below shows `-m gpt-5.6-sol` and low effort; substitute the chosen model and effort.
 
 ## Before invoking — confirm intent
 
@@ -34,7 +42,8 @@ Codex Computer Use runs as a spawned macOS helper app that the Codex agent drive
 
 ```
 codex exec \
-  -m gpt-5.5 \
+  -m gpt-5.6-sol \
+  -c model_reasoning_effort="low" \
   --enable computer_use \
   --dangerously-bypass-approvals-and-sandbox \
   --skip-git-repo-check \
@@ -42,7 +51,8 @@ codex exec \
   "<PROMPT>"
 ```
 
-- `-m gpt-5.5` — the model; default `gpt-5.5`, or the model the user named (see [Choosing the model](#choosing-the-model)). Must support Computer Use.
+- `-m gpt-5.6-sol` — the model; default `gpt-5.6-sol`, or the model the user named (see [Choosing the model](#choosing-the-model)). Must support Computer Use.
+- `-c model_reasoning_effort="low"` — reasoning effort; default `low` for Computer Use (see [Choosing the effort](#choosing-the-effort)).
 - `--enable computer_use` — explicitly turn on the Computer Use skill (default is on, but be explicit).
 - `--dangerously-bypass-approvals-and-sandbox` — **required** in `codex exec`. Because exec's approval mode is `never`, Computer Use cannot ask for on-request approval; without this flag it auto-denies attaching to any app ("approval denied") and also hits a profile-access error. This flag lets Codex drive the UI autonomously (there is no `-a on-request` in this CLI). Since it grants fully-autonomous UI control with no per-action confirmation, confirm the user has authorized it before invoking, and hold back the run for genuinely risky tasks (see below).
 - **Always set an explicit Bash `timeout`.** Computer Use runs are especially slow because each action is a screenshot + reasoning cycle, and the Bash default (120000 ms / 2 min) will kill the run after just a few clicks. Pass `timeout: 600000` (10 min — the maximum the Bash tool allows) on every call. Multi-step UI tasks routinely exceed 10 minutes, so for anything beyond a couple of actions run the Bash call with `run_in_background: true` and poll its output — a foreground call cannot exceed the 600000 ms cap.
