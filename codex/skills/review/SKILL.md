@@ -30,38 +30,38 @@ The command below shows `-m gpt-5.6-sol` and high effort; substitute the chosen 
 
 ## How to invoke
 
-Codex has a dedicated review subcommand. Pick the target based on what the user wants reviewed:
+Codex has a dedicated review subcommand. It takes **exactly one** of a target flag or a custom review prompt — the CLI rejects a target flag combined with a prompt, and rejects a call with neither.
 
-| User asks to review | Flag |
+| User asks to review | Pass |
 |---|---|
-| Working-tree changes (staged + unstaged + untracked) | `--uncommitted` |
-| Everything on this branch vs `main` (or another branch) | `--base main` |
-| A specific commit | `--commit <SHA>` |
-| Nothing specified (defaults to current branch vs its merge base) | (no flag) |
+| Working-tree changes (staged + unstaged + untracked), no particular focus | `--uncommitted` |
+| Everything on this branch vs `main` (or another branch), no particular focus | `--base main` |
+| A specific commit, no particular focus | `--commit <SHA>` |
+| Anything with a focus or extra context | `"<REVIEW-PROMPT>"` (no target flag) |
 
 Command shape:
 
 ```
-codex exec review \
+codex exec -C "$PWD" review \
   -m gpt-5.6-sol \
   -c model_reasoning_effort="high" \
   --skip-git-repo-check \
-  -C "$PWD" \
-  <target-flag> \
-  "<REVIEW-PROMPT>"
+  <target-flag or "<REVIEW-PROMPT>">
 ```
 
+- `-C "$PWD"` — pin the workspace to Claude's current directory. It is a `codex exec` option, so it must come **before** `review`; the `review` subcommand itself does not accept `-C`.
 - `-m gpt-5.6-sol` — the model; default `gpt-5.6-sol`, or the model the user named (see [Choosing the model](#choosing-the-model)).
 - `-c model_reasoning_effort="high"` — reasoning effort; default `high`, or the level the user named (see [Choosing the effort](#choosing-the-effort)).
 - `codex exec review` (not plain `codex review`) — the `exec` form is non-interactive and prints to stdout.
 - No `-s` / `-a` needed: review mode is inherently read-only.
 - **Always set an explicit Bash `timeout`.** Reviews are slow and the Bash default (120000 ms / 2 min) will cut Codex off before it finishes. Pass `timeout: 600000` (10 min — the maximum the Bash tool allows) on every `codex exec review` call. For a very large diff that may exceed 10 minutes, run the Bash call with `run_in_background: true` and poll instead, since a foreground call cannot exceed the 600000 ms cap.
-- If the user did not specify a target, ask once — or default to `--uncommitted` if there are uncommitted changes, otherwise `--base main` (or the repo's default branch).
+- If the user did not specify a target, ask once — or default to the uncommitted changes if there are any, otherwise the branch vs `main` (or the repo's default branch).
 
 ## Passing the review prompt
 
-- If the user typed `/codex:review <text>`, use `<text>` as the review instructions.
-- If they said "have Codex review this", pass a short prompt describing what to focus on ("check for correctness bugs and race conditions", "focus on the auth changes", etc.). An empty prompt is legal — Codex will do a generic review — but a focused prompt gives better results.
+- With no focus to pass, use the target flag alone and Codex does a generic review of that target.
+- If the user typed `/codex:review <text>`, or said "have Codex review this" with something to focus on, drop the target flag and pass a prompt instead. Because the flag is gone, the prompt must name the target itself: "Review the uncommitted changes (staged, unstaged, and untracked). Focus on …", "Review this branch's changes against `main`. Focus on …", "Review commit `<SHA>`. Focus on …".
+- A focused prompt gives better results than a generic review, so prefer the prompt form whenever there is a focus worth stating ("check for correctness bugs and race conditions", "focus on the auth changes", etc.).
 - Codex has no memory of this Claude conversation. Include specifics (file paths, what the change is meant to do, known constraints) in the prompt.
 
 ## After the review
